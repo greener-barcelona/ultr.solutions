@@ -1,0 +1,121 @@
+:root {
+    --background-color: #E8E8E8;
+    --shadow-light: #FFFFFF;
+    --shadow-dark: #BEBEBE;
+    --primary-color: #000000;
+    --text-muted: #A0A0A0;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background-color: var(--background-color);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.header-logo {
+    position: absolute;
+    top: 30px;
+    left: 30px;
+}
+
+.logo {
+    height: 80px;
+    width: auto;
+    display: block;
+}
+
+.login-container {
+    width: 420px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+.input-field {
+    width: 100%;
+}
+
+.input-field input {
+    width: 100%;
+    padding: 20px 25px;
+    border: none;
+    outline: none;
+    font-size: 15px;
+    font-weight: 400;
+    color: var(--text-muted);
+    background-color: var(--background-color);
+    border-radius: 30px;
+    font-style: italic;
+    
+    box-shadow: inset 6px 6px 12px var(--shadow-dark),
+                inset -6px -6px 12px var(--shadow-light);
+    
+    transition: all 0.3s ease;
+}
+
+.input-field input::placeholder {
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+.input-field input:focus {
+    color: #333;
+}
+
+.google-login-btn {
+    width: 50%;
+    padding: 14px 0;
+    margin: 10px auto 0;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    background-color: var(--primary-color);
+    color: white;
+    border-radius: 25px;
+    
+    box-shadow: 8px 8px 16px var(--shadow-dark),
+                -8px -8px 16px var(--shadow-light);
+    
+    transition: all 0.2s ease;
+}
+
+.google-login-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 10px 10px 20px var(--shadow-dark),
+                -10px -10px 20px var(--shadow-light);
+}
+
+.google-login-btn:active {
+    transform: translateY(0);
+    box-shadow: 4px 4px 8px var(--shadow-dark),
+                -4px -4px 8px var(--shadow-light);
+}
+
+@media (max-width: 480px) {
+    .login-container {
+        width: 90%;
+        padding: 0 20px;
+    }
+    
+    .header-logo {
+        top: 20px;
+        left: 20px;
+    }
+    
+    .logo {
+        height: 35px;
+    }
+}
