@@ -65,7 +65,7 @@ document.addEventListener("DOMContentLoaded", () => {
     await sb.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: "http://localhost:3000/LogIn/index.html",
+        redirectTo: "http://ultr.solutions/LogIn/index.html",
       },
     });
   });
