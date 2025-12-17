@@ -495,8 +495,8 @@ body {
 
 .message.user {
   justify-content: flex-end;
-  text-align: right;
 }
+
 .message.user .text-content {
   background-color: #dcdcdc;     
   padding: 12px 18px;            
