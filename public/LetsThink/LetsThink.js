@@ -18,7 +18,7 @@ function getSession() {
 function logout() {
   localStorage.removeItem("ultraUser");
   sb.auth.signOut();
-  window.location.href = "../Login/index.html";
+  window.location.href = "../LogIn/index.html";
 }
 
 function renderMessage({ author, text, userProfile }) {
@@ -655,7 +655,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   } = await sb.auth.getSession();
 
   if (!session) {
-    window.location.href = "../Login/index.html";
+    window.location.href = "../LogIn/index.html";
     return;
   }
 
