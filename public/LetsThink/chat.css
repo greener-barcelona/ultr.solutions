@@ -497,7 +497,9 @@ body {
   justify-content: flex-end;
   text-align: right;
 }
-
+.message.user .text-content {
+  background-color: #c7c6c6; /* un pelín más oscuro */
+}
 
 .message .avatar {
   width: 30px;
@@ -537,9 +539,6 @@ body {
   font-style: italic;
   text-align: end;
 }
-
-
-
 
 .input-area {
   padding: 25px 80px 35px;
