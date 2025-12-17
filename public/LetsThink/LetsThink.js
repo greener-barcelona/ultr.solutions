@@ -511,6 +511,9 @@ async function summarizeConversation(button) {
   }
 }
 
+
+let cachedConversations = null;
+
 document.addEventListener("DOMContentLoaded", async () => {
   const searchBtn = document.getElementById("searchChatBtn");
   const searchModal = document.getElementById("searchModal");
@@ -549,6 +552,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     searchResults.innerHTML = "";
     searchInput.focus();
   });
+    if (!cachedConversations) {
+    cachedConversations = await getAllConversations();
+    for (const conv of cachedConversations) {
+      conv._messages = await getConversationMessages(conv.id);
+    }
+  }
+
 
   closeSearchBtn.addEventListener("click", () => {
     searchModal.classList.remove("active");
@@ -566,36 +576,29 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   });
 
-  searchInput.addEventListener("input", async () => {
-    const query = searchInput.value.toLowerCase().trim();
-    searchResults.innerHTML = "";
-    if (!query) return;
+searchInput.addEventListener("input", () => {
+  const query = searchInput.value.toLowerCase().trim();
+  searchResults.innerHTML = "";
+  if (!query || !cachedConversations) return;
 
-    const allConvs = await getAllConversations();
+  cachedConversations.forEach((conv) => {
+    const titleMatch = conv.title.toLowerCase().includes(query);
+    const contentMatch = conv._messages.some((m) =>
+      m.text.toLowerCase().includes(query)
+    );
 
-    for (const conv of allConvs) {
-      const messages = await getConversationMessages(conv.id);
-      const titleMatch = conv.title.toLowerCase().includes(query);
-      const contentMatch = messages.some((m) =>
-        m.text.toLowerCase().includes(query)
-      );
-
-      if (titleMatch || contentMatch) {
-        const div = document.createElement("div");
-        div.className = "search-result-item";
-        div.innerHTML = `
-          <div class="search-result-title">${conv.title}</div>
-        `;
-
-        div.addEventListener("click", () => {
-          searchModal.classList.remove("active");
-          loadConversation(conv.id);
-        });
-
-        searchResults.appendChild(div);
-      }
+    if (titleMatch || contentMatch) {
+      const div = document.createElement("div");
+      div.className = "search-result-item";
+      div.innerHTML = `<div class="search-result-title">${conv.title}</div>`;
+      div.onclick = () => {
+        searchModal.classList.remove("active");
+        loadConversation(conv.id);
+      };
+      searchResults.appendChild(div);
     }
   });
+});
 
   textarea.addEventListener("keydown", async (e) => {
     if (e.key === "Enter") {
@@ -662,3 +665,4 @@ document.addEventListener("DOMContentLoaded", async () => {
   await ensureAppUser();
   await loadSidebarConversations();
 });
+
