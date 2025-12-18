@@ -10,6 +10,7 @@ import {
   renameConversation,
   deleteConversation,
 } from "./db.js";
+import { extractPDFText } from "./extractTextPDF.js";
 
 function getSession() {
   return getLocalSession();
@@ -267,23 +268,7 @@ async function OnFileLoaded(e, fileInput) {
       const base64 = await fileToBase64(file);
       const pureBase64 = base64.split(",")[1];
 
-      const response = await fetch("/api/extraerTextoPDF", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          pureBase64,
-        }),
-      });
-
-      if (!response.ok) {
-        const errorDiv = document.createElement("div");
-        errorDiv.className = `message error text-content`;
-        errorDiv.textContent = `Error procesando ${file.name}.`;
-        responseDiv.appendChild(errorDiv);
-        continue;
-      }
-
-      const PDFcontent = await response.json();
+      const PDFcontent = await extractPDFText(pureBase64);
 
       if (!PDFcontent.txt) {
         const errorDiv = document.createElement("div");

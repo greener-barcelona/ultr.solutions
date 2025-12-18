@@ -1,13 +1,15 @@
-import { anthropic } from "../lib/antropicAuth.js";
+import { openai } from "../lib/openaiAuth.js";
 
 async function resumirContenido(contenido) {
   try {
-    const response = await anthropic.messages.create({
-      model: "claude-sonnet-4-20250514",
-      max_tokens: 5000,
-      system:
-        "Eres un experto generador de briefs y resúmenes que ayuda a la hora de sintetizar largas conversaciones entre muchos usuarios.",
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
       messages: [
+        {
+          role: "system",
+          content:
+            "Eres un experto generador de briefs y resúmenes que ayuda a la hora de sintetizar largas conversaciones entre muchos usuarios.",
+        },
         {
           role: "user",
           content: `Necesito que hagas un resumen exhaustivo de la siguiente conversación entre varias personas: ${contenido}`,
@@ -15,13 +17,10 @@ async function resumirContenido(contenido) {
       ],
     });
 
-    return response.content
-      .filter((block) => block.type === "text")
-      .map((block) => block.text)
-      .join("\n");
+    return response.choices[0].message.content;
   } catch (err) {
     console.error(err);
-    throw err;
+    res.status(500).json({ error: "Error al llamar a OpenAI" });
   }
 }
 
