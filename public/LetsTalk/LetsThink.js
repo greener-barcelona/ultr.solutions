@@ -385,20 +385,20 @@ async function sendMessageToPerfil(perfilKey, API, triggerBtn) {
     }
 
     const data = await res.json();
-    data.replace(/```html|```/g, "");
+    const text = data.reply.replace(/```html|```/g, "");
 
-    if (data.reply && data.reply.trim() !== "") {
+    if (text && text.trim() !== "") {
       pending.remove();
 
       const replyDiv = renderMessage({
         author: `${perfilKey}-${API}`,
-        text: data.reply,
+        text: text,
       });
       addMessageToConversationHistory(replyDiv);
       responseDiv.appendChild(replyDiv);
 
       await saveMessage(activeConversationId, {
-        text: data.reply,
+        text: text,
         creativeAgent: `${perfilKey}-${API}`,
       });
     } else {
