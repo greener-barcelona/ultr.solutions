@@ -10,7 +10,6 @@ import {
   renameConversation,
   deleteConversation,
 } from "./db.js";
-import { extractPDFText } from "./extractTextPDF.js";
 
 function getSession() {
   return getLocalSession();
@@ -127,7 +126,7 @@ function addConversationToSidebar(conv) {
   menuButton.textContent = "⋮";
 
   const menu = document.createElement("div");
-  menu.className = "conv-menu"; 
+  menu.className = "conv-menu";
   menu.innerHTML = `
     <div class="conv-menu-item rename">Renombrar</div>
     <div class="conv-menu-item delete">Eliminar</div>
@@ -268,8 +267,24 @@ async function OnFileLoaded(e, fileInput) {
       const base64 = await fileToBase64(file);
       const pureBase64 = base64.split(",")[1];
 
-      const PDFcontent = await extractPDFText(pureBase64);
+      const response = await fetch("/api/extraerTextoPDF", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          pureBase64,
+        }),
+      });
 
+      if (!response.ok) {
+        const errorDiv = document.createElement("div");
+        errorDiv.className = `message error text-content`;
+        errorDiv.textContent = `Error procesando ${file.name}.`;
+        responseDiv.appendChild(errorDiv);
+        continue;
+      }
+
+      const PDFcontent = await response.json();
+      
       if (!PDFcontent.txt) {
         const errorDiv = document.createElement("div");
         errorDiv.className = `message error text-content`;
@@ -326,7 +341,7 @@ function fileToBase64(file) {
     reader.onload = () => resolve(reader.result);
     reader.onerror = (error) => reject(error);
 
-    reader.readAsDataURL(file); 
+    reader.readAsDataURL(file);
   });
 }
 
@@ -496,7 +511,6 @@ async function summarizeConversation(button) {
   }
 }
 
-
 let cachedConversations = null;
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -537,13 +551,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     searchResults.innerHTML = "";
     searchInput.focus();
   });
-    if (!cachedConversations) {
+  if (!cachedConversations) {
     cachedConversations = await getAllConversations();
     for (const conv of cachedConversations) {
       conv._messages = await getConversationMessages(conv.id);
     }
   }
-
 
   closeSearchBtn.addEventListener("click", () => {
     searchModal.classList.remove("active");
@@ -561,29 +574,29 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   });
 
-searchInput.addEventListener("input", () => {
-  const query = searchInput.value.toLowerCase().trim();
-  searchResults.innerHTML = "";
-  if (!query || !cachedConversations) return;
+  searchInput.addEventListener("input", () => {
+    const query = searchInput.value.toLowerCase().trim();
+    searchResults.innerHTML = "";
+    if (!query || !cachedConversations) return;
 
-  cachedConversations.forEach((conv) => {
-    const titleMatch = conv.title.toLowerCase().includes(query);
-    const contentMatch = conv._messages.some((m) =>
-      m.text.toLowerCase().includes(query)
-    );
+    cachedConversations.forEach((conv) => {
+      const titleMatch = conv.title.toLowerCase().includes(query);
+      const contentMatch = conv._messages.some((m) =>
+        m.text.toLowerCase().includes(query)
+      );
 
-    if (titleMatch || contentMatch) {
-      const div = document.createElement("div");
-      div.className = "search-result-item";
-      div.innerHTML = `<div class="search-result-title">${conv.title}</div>`;
-      div.onclick = () => {
-        searchModal.classList.remove("active");
-        loadConversation(conv.id);
-      };
-      searchResults.appendChild(div);
-    }
+      if (titleMatch || contentMatch) {
+        const div = document.createElement("div");
+        div.className = "search-result-item";
+        div.innerHTML = `<div class="search-result-title">${conv.title}</div>`;
+        div.onclick = () => {
+          searchModal.classList.remove("active");
+          loadConversation(conv.id);
+        };
+        searchResults.appendChild(div);
+      }
+    });
   });
-});
 
   textarea.addEventListener("keydown", async (e) => {
     if (e.key === "Enter") {
@@ -631,7 +644,7 @@ searchInput.addEventListener("input", () => {
     }
 
     document.querySelectorAll(".conv-menu").forEach((menu) => {
-      const btn = menu.previousElementSibling; 
+      const btn = menu.previousElementSibling;
       if (!menu.contains(e.target) && !btn?.contains(e.target)) {
         menu.classList.remove("active");
       }
@@ -650,4 +663,3 @@ searchInput.addEventListener("input", () => {
   await ensureAppUser();
   await loadSidebarConversations();
 });
-

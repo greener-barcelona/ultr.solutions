@@ -1,4 +1,4 @@
-/*import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf.mjs";
+import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf.mjs";
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -25,4 +25,3 @@ export default async function handler(req, res) {
     res.status(500).json({ error: "Error extrayendo texto del PDF" });
   }
 }
-*/
