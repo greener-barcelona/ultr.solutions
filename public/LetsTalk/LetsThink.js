@@ -265,9 +265,6 @@ async function OnFileLoaded(e, fileInput) {
     }
 
     try {
-      //const base64 = await fileToBase64(file);
-      //const pureBase64 = base64.split(",")[1];
-
       const PDFcontent = await extractPDFText(file);
 
       if (!PDFcontent.txt) {
