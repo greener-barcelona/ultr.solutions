@@ -385,8 +385,8 @@ async function sendMessageToPerfil(perfilKey, API, triggerBtn) {
     }
 
     const data = await res.json();
-    const betterData = replaceDoubleAsterisks(data);
-    const text = betterData.reply.replace(/```html|```/g, "");
+    const betterData = replaceDoubleAsterisks(data.reply);
+    const text = betterData.replace(/```html|```/g, "");
 
     if (text && text.trim() !== "") {
       pending.remove();
