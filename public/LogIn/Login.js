@@ -52,7 +52,7 @@ sb.auth.onAuthStateChange(async (event, session) => {
     await ensureUserInDB(user);
     saveLocalSession(user);
 
-    window.location.href = "../LetsThink/chat.html";
+    window.location.href = "../LetsTalk/";
   }
 });
 
@@ -65,7 +65,7 @@ document.addEventListener("DOMContentLoaded", () => {
     await sb.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: "http://ultr.solutions/LogIn/index.html",
+        redirectTo: "http://ultr.solutions/LogIn/",
       },
     });
   });

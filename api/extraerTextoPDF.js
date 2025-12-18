@@ -1,4 +1,4 @@
-import * as PDFParse from "pdf-parse/lib/pdf-parse.js";
+import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf.mjs";
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -7,15 +7,21 @@ export default async function handler(req, res) {
 
   try {
     const { pureBase64 } = req.body;
-    const data = new Uint8Array(Buffer.from(pureBase64, "base64"));
-    const result = new PDFParse(data);
-    const extractedText = await result.getText();
+    const data = Uint8Array.from(Buffer.from(pureBase64, "base64"));
 
-    res.json({
-      txt: extractedText.text,
-    });
+    const pdf = await pdfjsLib.getDocument({ data }).promise;
+    let fullText = "";
+
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page = await pdf.getPage(i);
+      const textContent = await page.getTextContent();
+      const pageText = textContent.items.map((item) => item.str).join(" ");
+      fullText += pageText + "\n\n";
+    }
+
+    res.json({ txt: fullText.trim() });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Error subiendo el PDF" });
+    res.status(500).json({ error: "Error extrayendo texto del PDF" });
   }
 }
