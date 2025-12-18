@@ -33,6 +33,10 @@ function renderMessage({ author, text, userProfile }) {
   divText.className = "text-content";
   divText.innerHTML = text;
 
+  if (!isUser && !isSystem) {
+  divText.classList.add("ai-message");
+}
+
   if (isUser) {
     const avatar = document.createElement("img");
     avatar.className = "avatar";
