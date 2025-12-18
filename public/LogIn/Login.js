@@ -1,4 +1,4 @@
-import { sb } from "../LetsThink/db.js";
+import { sb } from "../LetsTalk/db.js";
 
 const allowedDomains = ["itsgreener.com", "ffforward.ai", "villamagia.com"];
 
