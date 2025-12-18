@@ -6,7 +6,6 @@ pdfjsLib.GlobalWorkerOptions.workerSrc =
 export async function extractPDFText(file) {
   const arrayBuffer = await file.arrayBuffer();
   const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
-  console.log(pdf);
 
   let fullText = "";
 
@@ -16,6 +15,5 @@ export async function extractPDFText(file) {
     const pageText = textContent.items.map((item) => item.str).join(" ");
     fullText += pageText + "\n\n";
   }
-  console.log(fullText);
   return fullText;
 }

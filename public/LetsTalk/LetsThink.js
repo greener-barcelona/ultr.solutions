@@ -267,7 +267,7 @@ async function OnFileLoaded(e, fileInput) {
     try {
       const PDFcontent = await extractPDFText(file);
 
-      if (!PDFcontent.txt) {
+      if (!PDFcontent) {
         const errorDiv = document.createElement("div");
         errorDiv.className = `message error text-content`;
         errorDiv.textContent = `el PDF ${file.name} no tiene texto extraíble.`;
@@ -289,7 +289,7 @@ async function OnFileLoaded(e, fileInput) {
 
       conversationHistory.push({
         role: "user",
-        content: `${file.name}: ${PDFcontent.txt}`,
+        content: `${file.name}: ${PDFcontent}`,
       });
 
       if (!activeConversationId) {
