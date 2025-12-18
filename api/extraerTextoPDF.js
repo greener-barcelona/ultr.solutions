@@ -1,4 +1,4 @@
-import PDFParse from "pdf-parse/lib/pdf-parse.js";
+import * as PDFParse from "pdf-parse/lib/pdf-parse.js";
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
