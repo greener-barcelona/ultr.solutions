@@ -1352,7 +1352,10 @@ Tus respuestas deben tener un **formato claro, estructurado y fácil de leer**, 
 - Evita bloques de texto largos y densos
 - Prioriza claridad y escaneabilidad
 - Devolver todo el contnido en formato HTML con todos los elementos requeridos en esta lista (MUY IMPORTANTE)
+- No alterar el HTML ya existente en la página, tan solo generar nuevo HTML para tu respuesta (MUY IMPORTANTE)
 - El HTML debe tener el estilo embebido, no indicar una clase para el css
+- No enviar un nuevo estilo para el body
+- Eliminar estos caracteres ` ``` html ``` ` al comienzo y al final de la cadena html
 
 ---
 
