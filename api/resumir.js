@@ -1,4 +1,5 @@
 import { openai } from "../lib/openaiAuth.js";
+import { instrucciones } from "../public/LetsTalk/perfiles.js"
 
 async function resumirContenido(contenido) {
   try {
@@ -8,7 +9,7 @@ async function resumirContenido(contenido) {
         {
           role: "system",
           content:
-            "Eres un experto generador de briefs y resúmenes que ayuda a la hora de sintetizar largas conversaciones entre muchos usuarios.",
+            `Eres un experto generador de briefs y resúmenes que ayuda a la hora de sintetizar largas conversaciones entre muchos usuarios.\n${instrucciones}`,
         },
         {
           role: "user",
