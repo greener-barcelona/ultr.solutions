@@ -316,17 +316,6 @@ async function OnFileLoaded(e, fileInput) {
   }
 }
 
-function fileToBase64(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = (error) => reject(error);
-
-    reader.readAsDataURL(file);
-  });
-}
-
 function addMessageToConversationHistory(message) {
   const classArray = Array.from(message.classList);
   const apiClass = classArray.find((c) => c.startsWith("api-"));
