@@ -580,7 +580,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       await handleUserSend();
     }
   });
-
+  
   const newChatBtn = document.getElementById("newChatBtn");
   newChatBtn.addEventListener("click", async () => {
     await startNewConversation();

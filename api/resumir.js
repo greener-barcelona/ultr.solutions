@@ -17,8 +17,8 @@ async function resumirContenido(contenido) {
         },
       ],
     });
-
-    return response.choices[0].message.content;
+    
+    return response.choices[0].message.content.replace(/```html|```/g, "");
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Error al llamar a OpenAI" });

@@ -571,8 +571,8 @@ body {
   margin-top: 10px;
 }
 .chat-btn {
-  width: 125px;
-  height: 37.5px;
+  width: 15%;
+  height: 37px;
   background-color: var(--primary-black);
   color: white;
   border: none;
