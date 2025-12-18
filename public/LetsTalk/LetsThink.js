@@ -34,8 +34,8 @@ function renderMessage({ author, text, userProfile }) {
   divText.innerHTML = text;
 
   if (!isUser && !isSystem) {
-  divText.classList.add("ai-message");
-}
+    divText.classList.add("ai-message");
+  }
 
   if (isUser) {
     const avatar = document.createElement("img");
@@ -385,6 +385,7 @@ async function sendMessageToPerfil(perfilKey, API, triggerBtn) {
     }
 
     const data = await res.json();
+    data.replace(/```html|```/g, "");
 
     if (data.reply && data.reply.trim() !== "") {
       pending.remove();

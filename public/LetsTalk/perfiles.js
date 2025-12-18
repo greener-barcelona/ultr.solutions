@@ -1355,7 +1355,10 @@ Tus respuestas deben tener un **formato claro, estructurado y fácil de leer**, 
 - No alterar el HTML ya existente en la página, tan solo generar nuevo HTML para tu respuesta (MUY IMPORTANTE)
 - El HTML debe tener el estilo embebido, no indicar una clase para el css
 - No enviar un nuevo estilo para el body
-- Eliminar estos caracteres """html """ que indican el comienzo y el final de la cadena html
+- No incluir ningún color para el background
+- No incluir margenes ni paddings en el texto
+- El texto ha de estar en color negro siempre
+- Eliminar los caracteres """html """ que indican el comienzo y el final de la cadena html (IMPORTANTE)
 
 ---
 
