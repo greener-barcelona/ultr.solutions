@@ -385,7 +385,8 @@ async function sendMessageToPerfil(perfilKey, API, triggerBtn) {
     }
 
     const data = await res.json();
-    const text = data.reply.replace(/```html|```/g, "");
+    const betterData = replaceDoubleAsterisks(data);
+    const text = betterData.reply.replace(/```html|```/g, "");
 
     if (text && text.trim() !== "") {
       pending.remove();
@@ -414,6 +415,16 @@ async function sendMessageToPerfil(perfilKey, API, triggerBtn) {
   } finally {
     toggleProfileButtons(triggerBtn);
   }
+}
+
+function replaceDoubleAsterisks(text) {
+  let open = true;
+
+  return text.replace(/\*\*/g, () => {
+    const tag = open ? "<strong>" : "</strong>";
+    open = !open;
+    return tag;
+  });
 }
 
 async function summarizeOrExportConversationToDoc(button, summarize) {
@@ -580,7 +591,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       await handleUserSend();
     }
   });
-  
+
   const newChatBtn = document.getElementById("newChatBtn");
   newChatBtn.addEventListener("click", async () => {
     await startNewConversation();

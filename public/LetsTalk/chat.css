@@ -8,7 +8,6 @@
   --shadow-dark: #bebebe;
 }
 
-
 * {
   margin: 0;
   padding: 0;
@@ -23,7 +22,6 @@ body {
   overflow: hidden;
   background-color: var(--background-gray);
 }
-
 
 .sidebar {
   width: 465px;
@@ -84,12 +82,10 @@ body {
   flex-shrink: 0;
 }
 
-
 .conversations {
   padding: 8px;
   overflow-y: auto;
 }
-
 
 .conversation-item {
   position: relative;
@@ -135,7 +131,6 @@ body {
   flex-shrink: 0;
 }
 
-
 .conversation-text {
   display: flex;
   flex-direction: column;
@@ -153,11 +148,9 @@ body {
   color: #888;
 }
 
-
 .dropdown-item:hover {
   background: #f0f0f0;
 }
-
 
 .search-modal {
   position: fixed;
@@ -234,7 +227,6 @@ body {
   color: #000;
 }
 
-
 .sidebar-header {
   padding: 35px;
   display: flex;
@@ -285,7 +277,6 @@ body {
   color: var(--blue-icon);
 }
 
-
 .settings-menu {
   position: absolute;
   top: 30px;
@@ -325,7 +316,6 @@ body {
 .settings-menu-item:hover {
   background-color: rgba(0, 0, 0, 0.03);
 }
-
 
 .perfil-select {
   max-height: 300px;
@@ -417,7 +407,6 @@ body {
   color: var(--text-light);
 }
 
-
 .main-content {
   flex: 1;
   display: flex;
@@ -425,14 +414,12 @@ body {
   background-color: var(--background-gray);
 }
 
-
 .header {
   padding: 20px 40px;
   display: flex;
   justify-content: flex-end;
   align-items: center;
 }
-
 
 .model-selector {
   padding: 10px 15px;
@@ -496,12 +483,12 @@ body {
 }
 
 .message.user .text-content {
-  background-color: #dcdcdc;     
-  padding: 12px 18px;            
-  border-radius: 18px;           
-  display: inline-block;         
-  max-width: 75%;                 
-  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  background-color: #dcdcdc;
+  padding: 12px 18px;
+  border-radius: 18px;
+  display: inline-block;
+  max-width: 75%;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
 .message .avatar {
@@ -590,8 +577,6 @@ body {
   transform: scale(0.98);
 }
 
-
-
 .chat-actions {
   display: flex;
   gap: 14px;
@@ -620,10 +605,6 @@ body {
   stroke: currentColor;
 }
 
-
-
-
-
 .conversations::-webkit-scrollbar,
 .chat-area::-webkit-scrollbar {
   width: 5px;
@@ -634,7 +615,6 @@ body {
   background: #b8b8b8;
   border-radius: 3px;
 }
-
 
 .conv-menu-btn {
   background: transparent;
@@ -693,7 +673,6 @@ body {
   visibility: visible;
   transform: translateY(0);
 }
-
 
 .conv-menu-item {
   padding: 12px 18px;

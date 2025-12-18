@@ -1,5 +1,5 @@
 import { openai } from "../lib/openaiAuth.js";
-import { instrucciones } from "../public/LetsTalk/perfiles.js"
+import { instrucciones } from "../public/LetsTalk/perfiles.js";
 
 async function resumirContenido(contenido) {
   try {
@@ -8,8 +8,7 @@ async function resumirContenido(contenido) {
       messages: [
         {
           role: "system",
-          content:
-            `Eres un experto generador de briefs y resúmenes que ayuda a la hora de sintetizar largas conversaciones entre muchos usuarios.\n${instrucciones}`,
+          content: `Eres un experto generador de briefs y resúmenes que ayuda a la hora de sintetizar largas conversaciones entre muchos usuarios.\n${instrucciones}`,
         },
         {
           role: "user",
@@ -17,12 +16,25 @@ async function resumirContenido(contenido) {
         },
       ],
     });
-    
-    return response.choices[0].message.content.replace(/```html|```/g, "");
+    const text = response.choices[0].message.content.replace(
+      /```html|```/g,
+      ""
+    );
+    return replaceDoubleAsterisks(text);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Error al llamar a OpenAI" });
   }
+}
+
+function replaceDoubleAsterisks(text) {
+  let open = true;
+
+  return text.replace(/\*\*/g, () => {
+    const tag = open ? "<strong>" : "</strong>";
+    open = !open;
+    return tag;
+  });
 }
 
 export default async function handler(req, res) {
