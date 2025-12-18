@@ -525,6 +525,12 @@ body {
   justify-content: flex-start;
   flex-direction: column;
 }
+.message-content-wrapper.left .text-content {
+  text-align: justify;
+  text-justify: inter-word;
+  line-height: 1.65;
+  hyphens: auto;
+}
 
 .message-content-wrapper.right {
   justify-content: flex-start;
