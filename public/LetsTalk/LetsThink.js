@@ -465,20 +465,46 @@ async function sendMessageToAPI(perfilKey, API, triggerBtn) {
 
 async function exportConversation(button, summarize) {
   toggleElement(button);
-  const res = await fetch(`/api/exportar`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      conversation: conversationHistory,
-      nombre: title || "Conversación sin titulo",
-      summarize: summarize,
-    }),
-  });
+  const pending = document.createElement("div");
+  pending.className = "message pending text-content";
+  pending.textContent = "Exportando...";
+  responseDiv.appendChild(pending);
+  responseDiv.scrollTop = responseDiv.scrollHeight;
+  try {
+    const res = await fetch(`/api/exportar`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        conversation: conversationHistory,
+        nombre: title || "Conversación sin titulo",
+        summarize: summarize,
+      }),
+    });
 
-  const data = await res.json();
-  toggleElement(button);
-  const driveUrl = `https://drive.google.com/file/d/${data.fileId}`;
-  window.open(driveUrl, "_blank");
+    if (!res.ok) {
+      const errorData = await res.json();
+      throw new Error(errorData.error || "Error al enviar.");
+    }
+
+    const data = await res.json();
+
+    if (data.fileId) {
+      pending.remove();
+      const driveUrl = `https://drive.google.com/file/d/${data.fileId}`;
+      window.open(driveUrl, "_blank");
+    } else {
+      pending.textContent = "La IA no generó respuesta";
+      pending.classList.remove("pending");
+      pending.classList.add("error");
+    }
+  } catch (error) {
+    console.error("Error completo:", error);
+    pending.textContent = `Error: ${error.message}`;
+    pending.classList.remove("pending");
+    pending.classList.add("error");
+  } finally {
+    toggleElement(button);
+  }
 }
 
 async function summarizeConversation(button) {
@@ -508,7 +534,9 @@ async function summarizeConversation(button) {
     if (data.reply && data.reply.trim() !== "") {
       pending.remove();
 
-      const cleatext = replaceDoubleAsterisks(data.reply.replace(/```html|```/g, ""));
+      const cleatext = replaceDoubleAsterisks(
+        data.reply.replace(/```html|```/g, "")
+      );
 
       const replyDiv = renderMessage({
         author: `claude-summary`,
@@ -580,7 +608,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     searchResults.innerHTML = "";
     searchInput.focus();
   });
-  
+
   if (!cachedConversations) {
     cachedConversations = await getAllConversations();
     for (const conv of cachedConversations) {
