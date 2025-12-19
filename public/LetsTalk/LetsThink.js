@@ -166,9 +166,10 @@ async function loadConversation(conversationId) {
   responseDiv.innerHTML = "";
 
   messages.forEach((msg) => {
-    console.log(msg);
     const rendered = renderMessage({
-      author: msg.creative_agent || (user.name.split(" ")[0] ?? user.name),
+      author:
+        msg.creative_agent ||
+        (msg.author_name.split(" ")[0] ?? msg.author_name),
       text: msg.text,
       userProfile: msg.author_avatar,
     });
@@ -193,7 +194,8 @@ function addMessageToConversationHistory(message) {
     autor = `${profileClass.split("-")[1]}-${apiClass.split("-")[1]}`;
   else if (systemClass) autor = "Sistema";
   else autor = user.name.split(" ")[0] ?? user.name;
-
+  console.log(autor);
+  console.log(user);
   const content = `${autor}: ${message.textContent.trim()}`;
 
   if (content === "" || content === null) return;
@@ -245,8 +247,8 @@ async function userSendMessage(textarea) {
 }
 
 function renderMessage({ author, text, userProfile }) {
-  const isUser = author === user.name.split(" ")[0] ?? user.name;
   const isSystem = author === "system";
+  const isUser = !isSystem && !author.contains("-");
 
   const wrapper = document.createElement("div");
   wrapper.className = `message-content-wrapper ${isUser ? "right" : "left"}`;
