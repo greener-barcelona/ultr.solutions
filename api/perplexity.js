@@ -19,7 +19,7 @@ export default async function handler(req, res) {
       ],
     });
 
-    const content = response.choices[0].message.content;
+    const content = response.choices[0].message.content.replace(/\[\d+\]/g, '');
     const reply =
       typeof content === "string"
         ? content
