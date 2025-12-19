@@ -1,3 +1,4 @@
+import * as pdfjsLib from "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.2.67/pdf.min.mjs";
 import { perfiles, instrucciones } from "./perfiles.js";
 import {
   sb,
@@ -10,7 +11,19 @@ import {
   renameConversation,
   deleteConversation,
 } from "./db.js";
-import { extractPDFText } from "./extractPDF.js";
+
+pdfjsLib.GlobalWorkerOptions.workerSrc =
+  "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.2.67/pdf.worker.min.mjs";
+
+let activeConversationId = null;
+let cachedConversations = null;
+
+let title = "";
+const conversationHistory = [];
+
+const responseDiv = document.getElementById("messages");
+
+//Sesión
 
 function getSession() {
   return getLocalSession();
@@ -22,90 +35,19 @@ function logout() {
   window.location.href = "../LogIn/";
 }
 
-function renderMessage({ author, text, userProfile }) {
-  const isUser = author === "Usuario";
-  const isSystem = author === "system";
+//Conversaciones
 
-  const wrapper = document.createElement("div");
-  wrapper.className = `message-content-wrapper ${isUser ? "right" : "left"}`;
+async function startNewConversation() {
+  responseDiv.innerHTML = "";
+  conversationHistory.length = 0;
+  activeConversationId = null;
+  title = "Nueva conversación";
+  const newConv = await createConversation("Nueva conversación");
 
-  const divText = document.createElement("div");
-  divText.className = "text-content";
-  divText.innerHTML = text;
-
-  if (!isUser && !isSystem) {
-    divText.classList.add("ai-message");
+  if (newConv) {
+    activeConversationId = newConv.id;
   }
-
-  if (isUser) {
-    const avatar = document.createElement("img");
-    avatar.className = "avatar";
-    avatar.src = userProfile || "https://via.placeholder.com/30";
-
-    wrapper.appendChild(avatar);
-    wrapper.appendChild(divText);
-  } else if (!isUser && !isSystem) {
-    const autor = document.createElement("div");
-    autor.className = "ia-autor text-content";
-    autor.innerHTML = `${author.split("-")[0]}-${author.split("-")[1]}`;
-    wrapper.appendChild(divText);
-    wrapper.appendChild(autor);
-  }
-  const div = document.createElement("div");
-  div.classList.add("message");
-  if (isUser) div.classList.add("user");
-  if (isSystem) div.classList.add("system");
-  if (!isUser && !isSystem) {
-    div.classList.add(`profile-${author.split("-")[0]}`);
-    div.classList.add(`api-${author.split("-")[1]}`);
-  }
-
-  div.appendChild(wrapper);
-
-  return div;
-}
-
-let activeConversationId = null;
-const responseDiv = document.getElementById("messages");
-const textarea = document.getElementById("userInputArea");
-let title = "";
-
-async function handleUserSend() {
-  if (!textarea || !responseDiv) return null;
-
-  const text = textarea.value.trim();
-  if (!text) return null;
-
-  const user = getSession();
-
-  if (!activeConversationId) {
-    title = text.length > 40 ? text.slice(0, 40) + "..." : text;
-    const newConv = await createConversation(title);
-
-    if (newConv) {
-      activeConversationId = newConv.id;
-      await loadSidebarConversations();
-    }
-  }
-
-  if (title === "Nueva conversación") {
-    title = text.length > 40 ? text.slice(0, 40) + "..." : text;
-    await renameConversation(activeConversationId, title);
-    await loadSidebarConversations();
-  }
-
-  const uiMessage = renderMessage({
-    author: "Usuario",
-    text: text,
-    userProfile: user.profilePicture,
-  });
-
-  responseDiv.appendChild(uiMessage);
-  responseDiv.scrollTop = responseDiv.scrollHeight;
-
-  addMessageToConversationHistory(uiMessage);
-  textarea.value = "";
-  await saveMessage(activeConversationId, { text: text });
+  await loadSidebarConversations();
 }
 
 function addConversationToSidebar(conv) {
@@ -241,21 +183,117 @@ async function loadConversation(conversationId) {
   responseDiv.scrollTop = responseDiv.scrollHeight;
 }
 
-async function startNewConversation() {
-  responseDiv.innerHTML = "";
-  conversationHistory.length = 0;
-  activeConversationId = null;
-  title = "Nueva conversación";
-  const newConv = await createConversation("Nueva conversación");
+function addMessageToConversationHistory(message) {
+  const classArray = Array.from(message.classList);
+  const apiClass = classArray.find((c) => c.startsWith("api-"));
+  const profileClass = classArray.find((c) => c.startsWith("profile-"));
+  const systemClass = classArray.includes("system");
 
-  if (newConv) {
-    activeConversationId = newConv.id;
+  let autor = "";
+
+  if (profileClass && apiClass)
+    autor = `${profileClass.split("-")[1]}-${apiClass.split("-")[1]}`;
+  else if (systemClass) autor = "Sistema";
+  else autor = "Usuario";
+
+  const content = `${autor}: ${message.textContent.trim()}`;
+
+  if (content === "" || content === null) return;
+
+  if (message.classList.contains("user") || systemClass || profileClass) {
+    conversationHistory.push({
+      role: "user",
+      content: content,
+    });
   }
-  await loadSidebarConversations();
 }
-const conversationHistory = [];
 
-async function OnFileLoaded(e, fileInput) {
+//Mensajes
+
+async function userSendMessage(textarea) {
+  if (!textarea || !responseDiv) return null;
+
+  const text = textarea.value.trim();
+  if (!text) return null;
+
+  const user = getSession();
+
+  if (!activeConversationId) {
+    title = text.length > 40 ? text.slice(0, 40) + "..." : text;
+    const newConv = await createConversation(title);
+
+    if (newConv) {
+      activeConversationId = newConv.id;
+      await loadSidebarConversations();
+    }
+  }
+
+  if (title === "Nueva conversación") {
+    title = text.length > 40 ? text.slice(0, 40) + "..." : text;
+    await renameConversation(activeConversationId, title);
+    await loadSidebarConversations();
+  }
+
+  const uiMessage = renderMessage({
+    author: "Usuario",
+    text: text,
+    userProfile: user.profilePicture,
+  });
+
+  responseDiv.appendChild(uiMessage);
+  responseDiv.scrollTop = responseDiv.scrollHeight;
+
+  addMessageToConversationHistory(uiMessage);
+  textarea.value = "";
+  await saveMessage(activeConversationId, { text: text });
+}
+
+function renderMessage({ author, text, userProfile }) {
+  const isUser = author === "Usuario";
+  const isSystem = author === "system";
+
+  const wrapper = document.createElement("div");
+  wrapper.className = `message-content-wrapper ${isUser ? "right" : "left"}`;
+
+  const divText = document.createElement("div");
+  divText.className = "text-content";
+  divText.innerHTML = text;
+
+  if (!isUser && !isSystem) {
+    divText.classList.add("ai-message");
+  }
+
+  if (isUser) {
+    const avatar = document.createElement("img");
+    avatar.className = "avatar";
+    avatar.src = userProfile || "https://via.placeholder.com/30";
+
+    wrapper.appendChild(avatar);
+    wrapper.appendChild(divText);
+  } else if (!isUser && !isSystem) {
+    const autor = document.createElement("div");
+    autor.className = "ia-autor text-content";
+    autor.innerHTML = `${author.split("-")[0]}-${author.split("-")[1]}`;
+    wrapper.appendChild(divText);
+    wrapper.appendChild(autor);
+  }
+  const div = document.createElement("div");
+  div.classList.add("message");
+  if (isUser) div.classList.add("user");
+  if (isSystem) div.classList.add("system");
+  if (!isUser && !isSystem) {
+    div.classList.add(`profile-${author.split("-")[0]}`);
+    div.classList.add(`api-${author.split("-")[1]}`);
+  }
+
+  div.appendChild(wrapper);
+
+  return div;
+}
+
+//Archivos
+
+async function onFileLoaded(e, fileInput) {
   const files = Array.from(e.target.files);
   for (const file of files) {
     if (!file) continue;
@@ -319,37 +357,41 @@ async function OnFileLoaded(e, fileInput) {
     fileInput.value = "";
   }
 }
+async function extractPDFText(file) {
+  const arrayBuffer = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
 
-function addMessageToConversationHistory(message) {
-  const classArray = Array.from(message.classList);
-  const apiClass = classArray.find((c) => c.startsWith("api-"));
-  const profileClass = classArray.find((c) => c.startsWith("profile-"));
-  const systemClass = classArray.includes("system");
+  let fullText = "";
 
-  let autor = "";
-
-  if (profileClass && apiClass)
-    autor = `${profileClass.split("-")[1]}-${apiClass.split("-")[1]}`;
-  else if (systemClass) autor = "Sistema";
-  else autor = "Usuario";
-
-  const content = `${autor}: ${message.textContent.trim()}`;
-
-  if (content === "" || content === null) return;
-
-  if (message.classList.contains("user") || systemClass || profileClass) {
-    conversationHistory.push({
-      role: "user",
-      content: content,
-    });
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i);
+    const textContent = await page.getTextContent();
+    const pageText = textContent.items.map((item) => item.str).join(" ");
+    fullText += pageText + "\n\n";
   }
+  return fullText;
 }
 
-function toggleProfileButtons(triggerBtn) {
-  triggerBtn.disabled = !triggerBtn.disabled;
+//Auxiliares
+
+function replaceDoubleAsterisks(text) {
+  let open = true;
+
+  return text.replace(/\*\*/g, () => {
+    const tag = open ? "<strong>" : "</strong>";
+    open = !open;
+    return tag;
+  });
 }
-async function sendMessageToPerfil(perfilKey, API, triggerBtn) {
-  await handleUserSend();
+
+function toggleElement(element) {
+  element.disabled = !element.disabled;
+}
+
+//Endpoints
+
+async function sendMessageToAPI(perfilKey, API, triggerBtn) {
+  await userSendMessage();
 
   if (conversationHistory.length === 0) {
     return alert("No hay mensajes para enviar.");
@@ -366,7 +408,7 @@ async function sendMessageToPerfil(perfilKey, API, triggerBtn) {
 
   if (!perfil) return alert("Perfil no encontrado.");
 
-  toggleProfileButtons(triggerBtn);
+  toggleElement(triggerBtn);
 
   const pending = document.createElement("div");
   pending.className = "message pending text-content";
@@ -380,7 +422,7 @@ async function sendMessageToPerfil(perfilKey, API, triggerBtn) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         perfil,
-        messages: [...conversationHistory, recordatorioFormato],
+        messages: [recordatorioFormato, ...conversationHistory],
       }),
     });
 
@@ -390,8 +432,7 @@ async function sendMessageToPerfil(perfilKey, API, triggerBtn) {
     }
 
     const data = await res.json();
-    const betterData = replaceDoubleAsterisks(data.reply);
-    const text = betterData.replace(/```html|```/g, "");
+    const text = replaceDoubleAsterisks(data.reply.replace(/```html|```/g, ""));
 
     if (text && text.trim() !== "") {
       pending.remove();
@@ -418,22 +459,12 @@ async function sendMessageToPerfil(perfilKey, API, triggerBtn) {
     pending.classList.remove("pending");
     pending.classList.add("error");
   } finally {
-    toggleProfileButtons(triggerBtn);
+    toggleElement(triggerBtn);
   }
 }
 
-function replaceDoubleAsterisks(text) {
-  let open = true;
-
-  return text.replace(/\*\*/g, () => {
-    const tag = open ? "<strong>" : "</strong>";
-    open = !open;
-    return tag;
-  });
-}
-
-async function summarizeOrExportConversationToDoc(button, summarize) {
-  toggleProfileButtons(button);
+async function exportConversation(button, summarize) {
+  toggleElement(button);
   const res = await fetch(`/api/exportar`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -445,13 +476,13 @@ async function summarizeOrExportConversationToDoc(button, summarize) {
   });
 
   const data = await res.json();
-  toggleProfileButtons(button);
+  toggleElement(button);
   const driveUrl = `https://drive.google.com/file/d/${data.fileId}`;
   window.open(driveUrl, "_blank");
 }
 
 async function summarizeConversation(button) {
-  toggleProfileButtons(button);
+  toggleElement(button);
   const pending = document.createElement("div");
   pending.className = "message pending text-content";
   pending.textContent = "Resumiendo...";
@@ -477,15 +508,17 @@ async function summarizeConversation(button) {
     if (data.reply && data.reply.trim() !== "") {
       pending.remove();
 
+      const cleatext = replaceDoubleAsterisks(data.reply.replace(/```html|```/g, ""));
+
       const replyDiv = renderMessage({
         author: `claude-summary`,
-        text: data.reply,
+        text: cleatext,
       });
       addMessageToConversationHistory(replyDiv);
       responseDiv.appendChild(replyDiv);
 
       await saveMessage(activeConversationId, {
-        text: data.reply,
+        text: cleatext,
         creativeAgent: `claude-summary`,
       });
     } else {
@@ -499,11 +532,11 @@ async function summarizeConversation(button) {
     pending.classList.remove("pending");
     pending.classList.add("error");
   } finally {
-    toggleProfileButtons(button);
+    toggleElement(button);
   }
 }
 
-let cachedConversations = null;
+//Inicialización
 
 document.addEventListener("DOMContentLoaded", async () => {
   const searchBtn = document.getElementById("searchChatBtn");
@@ -514,6 +547,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   const settingsBtn = document.getElementById("settingsBtn");
   const settingsMenu = document.getElementById("settingsMenu");
   const logoutBtn = document.getElementById("logoutBtn");
+  const newChatBtn = document.getElementById("newChatBtn");
+  const textarea = document.getElementById("userInputArea");
   const exportBtn = document.getElementById("exportBtn");
   const summaryPdfBtn = document.getElementById("summaryPdfBtn");
   const summaryBtn = document.getElementById("summaryBtn");
@@ -528,6 +563,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     !settingsBtn ||
     !settingsMenu ||
     !logoutBtn ||
+    !newChatBtn ||
+    !textarea ||
     !exportBtn ||
     !summaryPdfBtn ||
     !summaryBtn ||
@@ -543,6 +580,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     searchResults.innerHTML = "";
     searchInput.focus();
   });
+  
   if (!cachedConversations) {
     cachedConversations = await getAllConversations();
     for (const conv of cachedConversations) {
@@ -593,11 +631,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   textarea.addEventListener("keydown", async (e) => {
     if (e.key === "Enter") {
       e.preventDefault();
-      await handleUserSend();
+      await userSendMessage(textarea);
     }
   });
 
-  const newChatBtn = document.getElementById("newChatBtn");
   newChatBtn.addEventListener("click", async () => {
     await startNewConversation();
   });
@@ -605,23 +642,23 @@ document.addEventListener("DOMContentLoaded", async () => {
   const profileButtons = document.querySelectorAll("button[data-api]");
   profileButtons.forEach((btn) =>
     btn.addEventListener("click", () =>
-      sendMessageToPerfil(btn.dataset.perfil, btn.dataset.api, btn)
+      sendMessageToAPI(btn.dataset.perfil, btn.dataset.api, btn)
     )
   );
 
   exportBtn.addEventListener("click", () => {
-    summarizeOrExportConversationToDoc(exportBtn, false);
+    exportConversation(exportBtn, false);
   });
 
   summaryPdfBtn.addEventListener("click", () => {
-    summarizeOrExportConversationToDoc(summaryPdfBtn, true);
+    exportConversation(summaryPdfBtn, true);
   });
 
   summaryBtn.addEventListener("click", () => {
     summarizeConversation(summaryBtn);
   });
 
-  fileInput.addEventListener("change", async (e) => OnFileLoaded(e, fileInput));
+  fileInput.addEventListener("change", async (e) => onFileLoaded(e, fileInput));
 
   logoutBtn.addEventListener("click", logout);
 

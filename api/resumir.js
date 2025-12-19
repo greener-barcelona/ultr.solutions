@@ -1,7 +1,18 @@
 import { openai } from "../lib/openaiAuth.js";
 import { instrucciones } from "../public/LetsTalk/perfiles.js";
 
-async function resumirContenido(contenido) {
+export default async function handler(req, res) {
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Método no permitido" });
+  }
+
+  const { conversation } = req.body;
+  if (!conversation) {
+    return res.status(400).json({ error: "Falta conversación" });
+  }
+
+  const contenido = conversation.map((m) => m.content).join("\n\n");
+
   try {
     const response = await openai.chat.completions.create({
       model: "gpt-4o-mini",
@@ -16,43 +27,11 @@ async function resumirContenido(contenido) {
         },
       ],
     });
-    const text = response.choices[0].message.content.replace(
-      /```html|```/g,
-      ""
-    );
-    return replaceDoubleAsterisks(text);
+    
+    const text = response.choices[0].message.content;
+    res.json({ reply: text });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Error al llamar a OpenAI" });
-  }
-}
-
-function replaceDoubleAsterisks(text) {
-  let open = true;
-
-  return text.replace(/\*\*/g, () => {
-    const tag = open ? "<strong>" : "</strong>";
-    open = !open;
-    return tag;
-  });
-}
-
-export default async function handler(req, res) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Método no permitido" });
-  }
-
-  const { conversation } = req.body;
-  if (!conversation) {
-    return res.status(400).json({ error: "Falta conversación" });
-  }
-
-  try {
-    const contenido = conversation.map((m) => m.content).join("\n\n");
-    const reply = await resumirContenido(contenido);
-    res.json({ reply });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Error al resumir" });
   }
 }
