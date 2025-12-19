@@ -67,6 +67,9 @@
       <div class="header">
         <select class="model-selector">
           <option>Let's talk</option>
+          <option>Naming</option>
+          <option>Social</option>
+          <option>Briefer</option>
         </select>
       </div>
       <div class="chat-area" id="messages"></div>
@@ -125,7 +128,7 @@
 
       <div class="input-area">
         <div class="input-wrapper">
-          <div class="input-container">
+          <textarea class="input-container">
             <button class="upload-btn" type="button">
               +
               <input
@@ -135,12 +138,11 @@
                 accept="application/pdf"
               />
             </button>
-            <input
-              type="text"
+            <textarea
               class="chat-input"
               id="userInputArea"
               placeholder="Agrega tu comentario y elige con quién continuar la conversación..."
-            />
+            ></textarea>
           </div>
         </div>
         <section hidden class="perfil-area">

@@ -25,9 +25,7 @@ const responseDiv = document.getElementById("messages");
 
 //Sesión
 
-function getSession() {
-  return getLocalSession();
-}
+const user = getLocalSession();
 
 function logout() {
   localStorage.removeItem("ultraUser");
@@ -216,8 +214,6 @@ async function userSendMessage(textarea) {
   const text = textarea.value.trim();
   if (!text) return null;
 
-  const user = getSession();
-
   if (!activeConversationId) {
     title = text.length > 40 ? text.slice(0, 40) + "..." : text;
     const newConv = await createConversation(title);
@@ -317,7 +313,6 @@ async function onFileLoaded(e, fileInput) {
         continue;
       }
 
-      const user = getSession();
       const replyDiv = renderMessage({
         author: "Usuario",
         text: `${file.name} cargado correctamente.`,
@@ -602,6 +597,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
+  await ensureAppUser();
+  await loadSidebarConversations();
+
   searchBtn.addEventListener("click", () => {
     searchModal.classList.add("active");
     searchInput.value = "";
@@ -717,6 +715,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
-  await ensureAppUser();
-  await loadSidebarConversations();
+  console.log(user);
+  console.log(session);
 });
