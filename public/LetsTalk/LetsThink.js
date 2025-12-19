@@ -248,7 +248,7 @@ async function userSendMessage(textarea) {
 
 function renderMessage({ author, text, userProfile }) {
   const isSystem = author === "system";
-  const isUser = !isSystem && !author.contains("-");
+  const isUser = !isSystem && !author.includes("-");
 
   const wrapper = document.createElement("div");
   wrapper.className = `message-content-wrapper ${isUser ? "right" : "left"}`;
