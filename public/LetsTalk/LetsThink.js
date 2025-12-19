@@ -118,7 +118,6 @@ function addConversationToSidebar(conv) {
     if (!confirm("¿Seguro que deseas eliminar esta conversación?")) return;
 
     const ok = await deleteConversation(conv.id);
-    console.log(ok);
     if (!ok) {
       alert("Error al eliminar");
       return;
@@ -167,8 +166,9 @@ async function loadConversation(conversationId) {
   responseDiv.innerHTML = "";
 
   messages.forEach((msg) => {
+    console.log(msg);
     const rendered = renderMessage({
-      author: msg.creative_agent || "Usuario",
+      author: msg.creative_agent || (user.name.split(" ")[0] ?? user.name),
       text: msg.text,
       userProfile: msg.author_avatar,
     });
@@ -192,7 +192,7 @@ function addMessageToConversationHistory(message) {
   if (profileClass && apiClass)
     autor = `${profileClass.split("-")[1]}-${apiClass.split("-")[1]}`;
   else if (systemClass) autor = "Sistema";
-  else autor = "Usuario";
+  else autor = user.name.split(" ")[0] ?? user.name;
 
   const content = `${autor}: ${message.textContent.trim()}`;
 
@@ -231,7 +231,7 @@ async function userSendMessage(textarea) {
   }
 
   const uiMessage = renderMessage({
-    author: "Usuario",
+    author: user.name.split(" ")[0] ?? user.name,
     text: text,
     userProfile: user.profilePicture,
   });
@@ -245,7 +245,7 @@ async function userSendMessage(textarea) {
 }
 
 function renderMessage({ author, text, userProfile }) {
-  const isUser = author === "Usuario";
+  const isUser = author === user.name.split(" ")[0] ?? user.name;
   const isSystem = author === "system";
 
   const wrapper = document.createElement("div");
@@ -314,7 +314,7 @@ async function onFileLoaded(e, fileInput) {
       }
 
       const replyDiv = renderMessage({
-        author: "Usuario",
+        author: user.name.split(" ")[0] ?? user.name,
         text: `${file.name} cargado correctamente.`,
         userProfile: user.profilePicture,
       });
@@ -714,7 +714,4 @@ document.addEventListener("DOMContentLoaded", async () => {
     window.location.href = "../LogIn/";
     return;
   }
-
-  console.log(user);
-  console.log(session);
 });
