@@ -358,6 +358,11 @@ async function sendMessageToPerfil(perfilKey, API, triggerBtn) {
     role: "system",
     content: `A continuación se te presenta un perfil:\n\n${perfiles[perfilKey].content}\n\n${instrucciones}\n\nTu tarea es analizar exhaustivamente el perfil, entenderlo, y, finalmente, dar una respuesta. Ten en cuenta que estás en una conversación entre varias personas, por lo tanto tendrás que adaptar tu respuesta para adecuarte a las dinámicas típicas de una conversación.`,
   };
+  const recordatorioFormato = {
+    role: "user",
+    content:
+      "Recuerda darle formato al texto de acuerdo con las instrucciones que se encuentran en tu perfil!",
+  };
 
   if (!perfil) return alert("Perfil no encontrado.");
 
@@ -375,7 +380,7 @@ async function sendMessageToPerfil(perfilKey, API, triggerBtn) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         perfil,
-        messages: conversationHistory,
+        messages: [...conversationHistory, recordatorioFormato],
       }),
     });
 
