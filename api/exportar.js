@@ -1,6 +1,5 @@
 import { openai } from "../lib/openaiAuth.js";
 import { drive } from "../lib/googleAuth.js";
-//import { instrucciones } from "../public/LetsTalk/perfiles.js"
 
 async function resumirContenido(contenido) {
   try {
@@ -9,8 +8,7 @@ async function resumirContenido(contenido) {
       messages: [
         {
           role: "system",
-          content:
-            `Eres un experto generador de briefs y resúmenes que ayuda a la hora de sintetizar largas conversaciones entre muchos usuarios.`,
+          content: `Eres un experto generador de briefs y resúmenes que ayuda a la hora de sintetizar largas conversaciones entre muchos usuarios.`,
         },
         {
           role: "user",
@@ -26,10 +24,9 @@ async function resumirContenido(contenido) {
   }
 }
 
-async function subirArchivoDrive(contenido, nombreArchivo) {
+async function subirArchivoDrive(contenido, nombreArchivo, usuario) {
   const fileMetadata = {
     name: nombreArchivo,
-    parents: ["1Byw_pdJX_EHPEzzmsrW9ZfSTlaVA0sef"],
   };
   const media = {
     mimeType: "text/plain",
@@ -40,7 +37,21 @@ async function subirArchivoDrive(contenido, nombreArchivo) {
     media: media,
     fields: "id",
   });
-  return response.data.id;
+  const fileId = response.data.id;
+
+  if (usuario) {
+    await drive.permissions.create({
+      fileId: fileId,
+      requestBody: {
+        type: "user",
+        role: "writer",
+        emailAddress: usuario,
+      },
+      fields: "id",
+    });
+  }
+
+  return fileId;
 }
 
 export default async function handler(req, res) {
@@ -49,7 +60,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { conversation, nombre, summarize } = req.body;
+    const { conversation, nombre, summarize, usuario } = req.body;
     const contenido = conversation.map((m) => m.content).join("\n\n");
 
     let data = contenido;
@@ -59,7 +70,8 @@ export default async function handler(req, res) {
 
     const fileId = await subirArchivoDrive(
       data,
-      nombre || "Conversación sin nombre"
+      nombre || "Conversación sin nombre",
+      usuario
     );
 
     res.json({ fileId });

@@ -118,7 +118,6 @@ function addConversationToSidebar(conv) {
     if (!confirm("¿Seguro que deseas eliminar esta conversación?")) return;
 
     const ok = await deleteConversation(conv.id);
-    console.log(ok);
     if (!ok) {
       alert("Error al eliminar");
       return;
@@ -167,7 +166,6 @@ async function loadConversation(conversationId) {
   responseDiv.innerHTML = "";
 
   messages.forEach((msg) => {
-    console.log(msg);
     const rendered = renderMessage({
       author: msg.creative_agent || msg.author_name.split(" ")[0] || "Usuario", //Esto debería ser el mail
       text: msg.text,
@@ -195,7 +193,7 @@ function addMessageToConversationHistory(message) {
     autor = `${profileClass.split("-")[1]}-${apiClass.split("-")[1]}`;
   else if (systemClass) autor = "Sistema";
   else if (userClass) autor = `${userClass.split("-")[1]}`;
-
+  console.log(autor);
   const content = `${autor}: ${message.textContent.trim()}`;
 
   if (content === "" || content === null) return;
@@ -475,6 +473,7 @@ async function exportConversation(button, summarize) {
         conversation: conversationHistory,
         nombre: title || "Conversación sin titulo",
         summarize: summarize,
+        usuario: user.email
       }),
     });
 
@@ -716,7 +715,4 @@ document.addEventListener("DOMContentLoaded", async () => {
     window.location.href = "../LogIn/";
     return;
   }
-
-  console.log(user);
-  console.log(session);
 });
