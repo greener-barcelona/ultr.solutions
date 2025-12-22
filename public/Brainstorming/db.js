@@ -92,8 +92,6 @@ export async function getAllConversations() {
     .select("*")
     .eq("created_by", appUser.id)
     .order("updated_at", { ascending: false });
-
-    console.log("conversations:", all);
   if (error) {
     console.error("Error cargando conversaciones", error);
     return [];
