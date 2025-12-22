@@ -442,7 +442,6 @@ async function sendMessageToAPI(perfilKey, API, triggerBtn) {
   pending.textContent = "Enviando...";
   responseDiv.appendChild(pending);
   responseDiv.scrollTop = responseDiv.scrollHeight;
-  console.log([perfil, ...conversationHistory]);
 
   try {
     const res = await fetch(`/api/${API}`, {
