@@ -410,8 +410,8 @@ async function sendMessageToAPI(perfilKey, API, triggerBtn) {
     return alert("No hay mensajes para enviar.");
   }
 
-  let activePerfiles = {};
-  let activeInstrucciones = "";
+  let activePerfiles = null;
+  let activeInstrucciones = null;
 
   switch (modeValue) {
     case "Brainstorming":
@@ -420,7 +420,7 @@ async function sendMessageToAPI(perfilKey, API, triggerBtn) {
       break;
     case "Naming":
       break;
-    case "Social":
+    case "Socialstorming":
       activePerfiles = socialPerfiles;
       activeInstrucciones = socialInstrucciones;
       break;
@@ -442,6 +442,7 @@ async function sendMessageToAPI(perfilKey, API, triggerBtn) {
   pending.textContent = "Enviando...";
   responseDiv.appendChild(pending);
   responseDiv.scrollTop = responseDiv.scrollHeight;
+  console.log([perfil, ...conversationHistory]);
 
   try {
     const res = await fetch(`/api/${API}`, {
