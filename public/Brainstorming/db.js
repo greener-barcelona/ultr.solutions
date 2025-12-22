@@ -71,10 +71,19 @@ export async function createConversation(title = "Nueva conversación") {
 }
 
 export async function getAllConversations() {
-  const { data } = await sb
+  const appUser = await ensureAppUser();
+  if (!appUser) return [];
+
+  const { data, error } = await sb
     .from("conversations")
     .select("*")
-    .order("updated_at", { ascending: false }); 
+    .eq("created_by", appUser.id)
+    .order("updated_at", { ascending: false });
+
+  if (error) {
+    console.error("Error cargando conversaciones", error);
+    return [];
+  }
 
   return data;
 }
