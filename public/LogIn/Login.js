@@ -1,4 +1,4 @@
-import { sb } from "../LetsTalk/db.js";
+import { sb } from "../Brainstorming/db.js";
 
 const allowedDomains = ["itsgreener.com", "ffforward.ai", "villamagia.com"];
 
@@ -52,7 +52,7 @@ sb.auth.onAuthStateChange(async (event, session) => {
     await ensureUserInDB(user);
     saveLocalSession(user);
 
-    window.location.href = "../LetsTalk/";
+    window.location.href = "../Brainstorming/";
   }
 });
 
