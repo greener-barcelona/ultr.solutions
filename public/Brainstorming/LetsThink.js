@@ -1,5 +1,10 @@
 import * as pdfjsLib from "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.2.67/pdf.min.mjs";
-import { perfiles, instrucciones } from "./perfiles.js";
+import {
+  dialogoPerfiles,
+  dialogosInstrucciones,
+  socialPerfiles,
+  socialInstrucciones,
+} from "./perfiles.js";
 import {
   sb,
   getLocalSession,
@@ -18,6 +23,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc =
 let activeConversationId = null;
 let cachedConversations = null;
 
+let modeValue = "Brainstorming";
 let title = "";
 const conversationHistory = [];
 
@@ -402,14 +408,28 @@ async function sendMessageToAPI(perfilKey, API, triggerBtn) {
   if (conversationHistory.length === 0) {
     return alert("No hay mensajes para enviar.");
   }
+
+  let activePerfiles = {};
+  let activeInstrucciones = "";
+
+  switch (modeValue) {
+    case "Brainstorming":
+      activePerfiles = dialogoPerfiles;
+      activeInstrucciones = dialogosInstrucciones;
+      break;
+    case "Naming":
+      break;
+    case "Social":
+      activePerfiles = socialPerfiles;
+      activeInstrucciones = socialInstrucciones;
+      break;
+    case "Briefer":
+      break;
+  }
+
   const perfil = {
     role: "system",
-    content: `A continuación se te presenta un perfil:\n\n${perfiles[perfilKey].content}\n\n${instrucciones}\n\nTu tarea es analizar exhaustivamente el perfil, entenderlo, y, finalmente, dar una respuesta. Ten en cuenta que estás en una conversación entre varias personas, por lo tanto tendrás que adaptar tu respuesta para adecuarte a las dinámicas típicas de una conversación.`,
-  };
-  const recordatorioFormato = {
-    role: "user",
-    content:
-      "Recuerda darle formato al texto de acuerdo con las instrucciones que se encuentran en tu perfil!",
+    content: `${activePerfiles[perfilKey].content}\n\n${activeInstrucciones}`,
   };
 
   if (!perfil) return alert("Perfil no encontrado.");
@@ -428,7 +448,7 @@ async function sendMessageToAPI(perfilKey, API, triggerBtn) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         perfil,
-        messages: [recordatorioFormato, ...conversationHistory],
+        messages: [conversationHistory],
       }),
     });
 
@@ -709,10 +729,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     settingsMenu.classList.toggle("active");
   });
 
-  modeSelector.addEventListener("change", (e) =>
-    history.pushState({ section: e.target.value }, "", `/${e.target.value}`)
-  );
+  modeSelector.addEventListener("change", (e) => {
+    const value = e.target.value;
+    modeValue = value;
 
+    history.pushState({ section: value }, "", `/${e.target.value}/`);
+  });
   document.addEventListener("click", (e) => {
     if (!settingsBtn.contains(e.target) && !settingsMenu.contains(e.target)) {
       settingsMenu.classList.remove("active");
