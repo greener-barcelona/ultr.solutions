@@ -1,7 +1,9 @@
 {
   "version": 2,
+  "redirects": [
+    { "source": "/", "destination": "/LogIn/", "permanent": false }
+  ],
   "rewrites": [
-    { "source": "/", "destination": "/LogIn/" },
-    { "source": "/:slug*", "destination": "/Brainstorming/" }
+    { "source": "/(.*)", "destination": "/Brainstorming/index.html" }
   ]
 }

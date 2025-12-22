@@ -10,8 +10,6 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: "Falta mensaje o perfil" });
   }
 
-  console.log(messages, perfil);
-
   try {
     const response = await openai.chat.completions.create({
       model: "gpt-4o",

@@ -449,7 +449,7 @@ async function sendMessageToAPI(perfilKey, API, triggerBtn) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         perfil,
-        messages: [conversationHistory],
+        messages: conversationHistory,
       }),
     });
 
