@@ -4,6 +4,7 @@
     { "source": "/", "destination": "/LogIn/", "permanent": false }
   ],
   "rewrites": [
-    { "source": "/(.*)", "destination": "/Brainstorming/index.html" }
+    { "source": "/LogIn/:path*", "destination": "/LogIn/:path*" },
+    { "source": "/(Brainstorming|Naming|Socialstorming|Briefer)/:path*", "destination": "/Brainstorming/:path*" }
   ]
 }

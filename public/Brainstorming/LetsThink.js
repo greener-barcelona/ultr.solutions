@@ -23,7 +23,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc =
 let activeConversationId = null;
 let cachedConversations = null;
 
-let modeValue = "Brainstorming";
+let modeValue = "";
 let title = "";
 const conversationHistory = [];
 
@@ -631,6 +631,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     console.warn("Buscador no inicializado (elementos faltantes)");
     return;
   }
+
+  modeValue = window.location.pathname.split('/')[1];
 
   await ensureAppUser();
   await loadSidebarConversations();
