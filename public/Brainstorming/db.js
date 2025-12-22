@@ -16,28 +16,36 @@ export function getLocalSession() {
 }
 
 export async function ensureAppUser() {
-  const local = getLocalSession();
-  if (!local?.email) return null;
+  const {
+    data: { user },
+    error: authError,
+  } = await sb.auth.getUser();
 
-  let { data: existing, error } = await sb
+  if (authError || !user) {
+    console.warn("No hay usuario autenticado");
+    return null;
+  }
+  const { data: existing, error: selectError } = await sb
     .from("app_users")
     .select("*")
-    .eq("email", local.email)
+    .eq("id", user.id)
     .maybeSingle();
 
-  if (error) {
-    console.error("Error buscando app_user", error);
+  if (selectError) {
+    console.error("Error buscando app_user", selectError);
+    return null;
   }
 
   if (existing) return existing;
 
+  
   const { data, error: insertError } = await sb
     .from("app_users")
     .insert({
-      id: user.id,
-      email: local.email,
-      display_name: local.name || null,
-      avatar_url: local.profilePicture || null,
+      id: user.id,               
+      email: user.email,
+      display_name: user.user_metadata?.name || null,
+      avatar_url: user.user_metadata?.avatar_url || null,
     })
     .select()
     .single();
