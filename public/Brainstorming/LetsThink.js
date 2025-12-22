@@ -167,8 +167,9 @@ async function loadConversation(conversationId) {
   responseDiv.innerHTML = "";
 
   messages.forEach((msg) => {
+    console.log(msg);
     const rendered = renderMessage({
-      author: msg.creative_agent || "Usuario",
+      author: msg.creative_agent || "Usuario", //Esto debería ser el mail
       text: msg.text,
       userProfile: msg.author_avatar,
     });
@@ -185,6 +186,7 @@ function addMessageToConversationHistory(message) {
   const classArray = Array.from(message.classList);
   const apiClass = classArray.find((c) => c.startsWith("api-"));
   const profileClass = classArray.find((c) => c.startsWith("profile-"));
+  const userClass = classArray.find((c) => c.startsWith("user-"));
   const systemClass = classArray.includes("system");
 
   let autor = "";
@@ -192,13 +194,13 @@ function addMessageToConversationHistory(message) {
   if (profileClass && apiClass)
     autor = `${profileClass.split("-")[1]}-${apiClass.split("-")[1]}`;
   else if (systemClass) autor = "Sistema";
-  else autor = "Usuario";
+  else if (userClass) autor = `${userClass.split("-")[1]}`;
 
   const content = `${autor}: ${message.textContent.trim()}`;
 
   if (content === "" || content === null) return;
 
-  if (message.classList.contains("user") || systemClass || profileClass) {
+  if (userClass || systemClass || profileClass) {
     conversationHistory.push({
       role: "user",
       content: content,
@@ -231,7 +233,7 @@ async function userSendMessage(textarea) {
   }
 
   const uiMessage = renderMessage({
-    author: "Usuario",
+    author: user.name.split(" ")[0] || "Usuario",
     text: text,
     userProfile: user.profilePicture,
   });
@@ -245,7 +247,7 @@ async function userSendMessage(textarea) {
 }
 
 function renderMessage({ author, text, userProfile }) {
-  const isUser = author === "Usuario";
+  const isUser = (!author.includes("-") && author !== "system") || author === "Usuario";
   const isSystem = author === "system";
 
   const wrapper = document.createElement("div");
@@ -275,7 +277,7 @@ function renderMessage({ author, text, userProfile }) {
   }
   const div = document.createElement("div");
   div.classList.add("message");
-  if (isUser) div.classList.add("user");
+  if (isUser) div.classList.add(`user user-${author}`);
   if (isSystem) div.classList.add("system");
   if (!isUser && !isSystem) {
     div.classList.add(`profile-${author.split("-")[0]}`);
@@ -314,7 +316,7 @@ async function onFileLoaded(e, fileInput) {
       }
 
       const replyDiv = renderMessage({
-        author: "Usuario",
+        author: user.name.split(" ")[0] || "Usuario", 
         text: `${file.name} cargado correctamente.`,
         userProfile: user.profilePicture,
       });
@@ -534,7 +536,7 @@ async function summarizeConversation(button) {
       );
 
       const replyDiv = renderMessage({
-        author: `claude-summary`,
+        author: `openai-summary`,
         text: cleatext,
       });
       addMessageToConversationHistory(replyDiv);
@@ -542,7 +544,7 @@ async function summarizeConversation(button) {
 
       await saveMessage(activeConversationId, {
         text: cleatext,
-        creativeAgent: `claude-summary`,
+        creativeAgent: `openai-summary`,
       });
     } else {
       pending.textContent = "La IA no generó respuesta";
