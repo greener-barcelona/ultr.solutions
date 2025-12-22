@@ -1,9 +1,7 @@
 {
   "version": 2,
   "rewrites": [
-    {
-      "source": "/",
-      "destination": "/LogIn/"
-    }
+    { "source": "/", "destination": "/LogIn/" },
+    { "source": "/:slug", "destination": "/Brainstorming/" }
   ]
 }

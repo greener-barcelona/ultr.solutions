@@ -125,7 +125,7 @@ function addConversationToSidebar(conv) {
       alert("Error al eliminar");
       return;
     }
-   await refreshCachedConversations();
+    await refreshCachedConversations();
     await loadSidebarConversations();
 
     if (activeConversationId === conv.id) {
@@ -255,7 +255,8 @@ async function userSendMessage(textarea) {
 }
 
 function renderMessage({ author, text, userProfile }) {
-  const isUser = (!author.includes("-") && author !== "system") || author === "Usuario";
+  const isUser =
+    (!author.includes("-") && author !== "system") || author === "Usuario";
   const isSystem = author === "system";
 
   const wrapper = document.createElement("div");
@@ -324,7 +325,7 @@ async function onFileLoaded(e, fileInput) {
       }
 
       const replyDiv = renderMessage({
-        author: user.name.split(" ")[0] || "Usuario", 
+        author: user.name.split(" ")[0] || "Usuario",
         text: `${file.name} cargado correctamente.`,
         userProfile: user.profilePicture,
       });
@@ -483,7 +484,7 @@ async function exportConversation(button, summarize) {
         conversation: conversationHistory,
         nombre: title || "Conversación sin titulo",
         summarize: summarize,
-        usuario: user.email
+        usuario: user.email,
       }),
     });
 
@@ -587,6 +588,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const summaryPdfBtn = document.getElementById("summaryPdfBtn");
   const summaryBtn = document.getElementById("summaryBtn");
   const fileInput = document.getElementById("fileInput");
+  const modeSelector = document.getElementById("selector");
 
   if (
     !searchBtn ||
@@ -602,7 +604,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     !exportBtn ||
     !summaryPdfBtn ||
     !summaryBtn ||
-    !fileInput
+    !fileInput ||
+    !modeSelector
   ) {
     console.warn("Buscador no inicializado (elementos faltantes)");
     return;
@@ -618,14 +621,14 @@ document.addEventListener("DOMContentLoaded", async () => {
     searchInput.focus();
   });
 
- /* if (!cachedConversations) {
+  /* if (!cachedConversations) {
     cachedConversations = await getAllConversations();
     for (const conv of cachedConversations) {
       conv._messages = await getConversationMessages(conv.id);
     }
   }*/
 
-    await refreshCachedConversations();
+  await refreshCachedConversations();
 
   closeSearchBtn.addEventListener("click", () => {
     searchModal.classList.remove("active");
@@ -706,6 +709,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     settingsMenu.classList.toggle("active");
   });
 
+  modeSelector.addEventListener("change", (e) =>
+    history.pushState({ section: value }, "", `/${e.target.value}`)
+  );
+  
   document.addEventListener("click", (e) => {
     if (!settingsBtn.contains(e.target) && !settingsMenu.contains(e.target)) {
       settingsMenu.classList.remove("active");
