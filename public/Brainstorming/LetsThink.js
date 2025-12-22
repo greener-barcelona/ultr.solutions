@@ -710,9 +710,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   modeSelector.addEventListener("change", (e) =>
-    history.pushState({ section: value }, "", `/${e.target.value}`)
+    history.pushState({ section: e.target.value }, "", `/${e.target.value}`)
   );
-  
+
   document.addEventListener("click", (e) => {
     if (!settingsBtn.contains(e.target) && !settingsMenu.contains(e.target)) {
       settingsMenu.classList.remove("active");
