@@ -114,7 +114,7 @@ function addConversationToSidebar(conv) {
       alert("Error al renombrar");
       return;
     }
-    cachedConversations = null;
+   await refreshCachedConversations();
     if (activeConversationId === conv.id) {
       title = newTitle.trim();
     }
@@ -236,6 +236,7 @@ async function userSendMessage(textarea) {
 
     if (newConv) {
       activeConversationId = newConv.id;
+      await refreshCachedConversations();
       await loadSidebarConversations();
     }
   }
