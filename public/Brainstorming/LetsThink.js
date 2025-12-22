@@ -28,6 +28,7 @@ const responseDiv = document.getElementById("messages");
 const user = getLocalSession();
 
 function logout() {
+  cachedConversations = null;
   localStorage.removeItem("ultraUser");
   sb.auth.signOut();
   window.location.href = "../LogIn/";
@@ -36,6 +37,7 @@ function logout() {
 //Conversaciones
 
 async function startNewConversation() {
+  cachedConversations = null;
   responseDiv.innerHTML = "";
   conversationHistory.length = 0;
   activeConversationId = null;
@@ -106,6 +108,7 @@ function addConversationToSidebar(conv) {
       alert("Error al renombrar");
       return;
     }
+    cachedConversations = null;
     if (activeConversationId === conv.id) {
       title = newTitle.trim();
     }
@@ -122,6 +125,7 @@ function addConversationToSidebar(conv) {
       alert("Error al eliminar");
       return;
     }
+   await refreshCachedConversations();
     await loadSidebarConversations();
 
     if (activeConversationId === conv.id) {
@@ -207,6 +211,12 @@ function addMessageToConversationHistory(message) {
 }
 
 //Mensajes
+async function refreshCachedConversations() {
+  cachedConversations = await getAllConversations();
+  for (const conv of cachedConversations) {
+    conv._messages = await getConversationMessages(conv.id);
+  }
+}
 
 async function userSendMessage(textarea) {
   if (!textarea || !responseDiv) return null;
@@ -608,12 +618,14 @@ document.addEventListener("DOMContentLoaded", async () => {
     searchInput.focus();
   });
 
-  if (!cachedConversations) {
+ /* if (!cachedConversations) {
     cachedConversations = await getAllConversations();
     for (const conv of cachedConversations) {
       conv._messages = await getConversationMessages(conv.id);
     }
-  }
+  }*/
+
+    await refreshCachedConversations();
 
   closeSearchBtn.addEventListener("click", () => {
     searchModal.classList.remove("active");
