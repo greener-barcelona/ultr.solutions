@@ -169,7 +169,7 @@ async function loadConversation(conversationId) {
   messages.forEach((msg) => {
     console.log(msg);
     const rendered = renderMessage({
-      author: msg.creative_agent || "Usuario", //Esto debería ser el mail
+      author: msg.creative_agent || msg.author_name.split(" ")[0] || "Usuario", //Esto debería ser el mail
       text: msg.text,
       userProfile: msg.author_avatar,
     });
@@ -277,7 +277,7 @@ function renderMessage({ author, text, userProfile }) {
   }
   const div = document.createElement("div");
   div.classList.add("message");
-  if (isUser) div.classList.add(`user user-${author}`);
+  if (isUser) div.classList.add(`user-${author}`, "user");
   if (isSystem) div.classList.add("system");
   if (!isUser && !isSystem) {
     div.classList.add(`profile-${author.split("-")[0]}`);
