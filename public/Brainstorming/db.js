@@ -34,6 +34,7 @@ export async function ensureAppUser() {
   const { data, error: insertError } = await sb
     .from("app_users")
     .insert({
+      id: user.id,
       email: local.email,
       display_name: local.name || null,
       avatar_url: local.profilePicture || null,
@@ -50,15 +51,18 @@ export async function ensureAppUser() {
 }
 
 export async function createConversation(title = "Nueva conversación") {
-  const appUser = await ensureAppUser();
-  if (!appUser) return null;
+  const {
+    data: { user },
+  } = await sb.auth.getUser();
+
+  if (!user) return null;
 
   const { data, error } = await sb
     .from("conversations")
     .insert({
       title,
-      created_by: appUser.id,
-      created_by_email: appUser.email,
+      created_by: user.id,          
+      created_by_email: user.email,
     })
     .select()
     .single();
@@ -67,7 +71,8 @@ export async function createConversation(title = "Nueva conversación") {
     console.error("Error creando conversación", error);
     return null;
   }
-  return data; 
+
+  return data;
 }
 
 export async function getAllConversations() {
@@ -80,6 +85,7 @@ export async function getAllConversations() {
     .eq("created_by", appUser.id)
     .order("updated_at", { ascending: false });
 
+    console.log("conversations:", all);
   if (error) {
     console.error("Error cargando conversaciones", error);
     return [];
@@ -135,7 +141,6 @@ export async function getConversationMessages(conversationId) {
 
   return data;
 }
-
 export async function renameConversation(conversationId, newTitle) {
   const { data, error } = await sb
     .from("conversations")
