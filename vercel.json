@@ -3,7 +3,10 @@
   "outputDirectory": "public",
   "redirects": [
     { "source": "/", "destination": "/LogIn/", "permanent": false },
-    { "source": "/LogIn/:path*", "destination": "/LogIn/" },
-    { "source": "/:path*", "destination": "/Brainstorming/" }
+    {
+      "source": "/:path((?!LogIn).*)",
+      "destination": "/Brainstorming/",
+      "permanent": false
+    }
   ]
 }
