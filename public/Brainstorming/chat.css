@@ -548,6 +548,10 @@ body {
   outline: none;
 }
 
+.chat.input::-webkit-scrollbar {
+  display: none;
+}
+
 .button-group {
   display: flex;
   justify-content: space-between;
