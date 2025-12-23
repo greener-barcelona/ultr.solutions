@@ -364,7 +364,7 @@ body {
 }
 .input-container {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   gap: 8px;
 
   width: 100%;
@@ -549,6 +549,8 @@ body {
     "Helvetica Neue", Arial, sans-serif;
 
   overflow-y: auto;
+
+  place-content: center;
 }
 .chat-input::placeholder {
   color: var(--text-light);
