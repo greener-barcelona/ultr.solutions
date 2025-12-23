@@ -173,11 +173,12 @@ async function loadConversation(conversationId) {
   }
 
   const messages = await getConversationMessages(conversationId);
+  conversationHistory.length = 0;
   responseDiv.innerHTML = "";
 
   messages.forEach((msg) => {
     const rendered = renderMessage({
-      author: msg.creative_agent || msg.author_name.split(" ")[0] || "Usuario", //Esto debería ser el mail
+      author: msg.creative_agent || msg.author_name.split(" ")[0] || "Usuario",
       text: msg.text,
       userProfile: msg.author_avatar,
     });
@@ -203,7 +204,7 @@ function addMessageToConversationHistory(message) {
     autor = `${profileClass.split("-")[1]}-${apiClass.split("-")[1]}`;
   else if (systemClass) autor = "Sistema";
   else if (userClass) autor = `${userClass.split("-")[1]}`;
-  console.log(autor);
+
   const content = `${autor}: ${message.textContent.trim()}`;
 
   if (content === "" || content === null) return;
