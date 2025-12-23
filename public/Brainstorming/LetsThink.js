@@ -450,7 +450,7 @@ async function sendMessageToAPI(perfilKey, API, triggerBtn) {
 
   const recordatorio = {
     role: "user",
-    content: "Recuerda hablar siempre en español de España. También recuerda utilizar el formato de salida obligatorio presente en tu perfil (este mensaje solo es un recordatorio y ha de ser ignorado en el resto de la conversación)",
+    content: "Es muy importante que tengas en cuenta que voy a querer empear un debate acerca de los temas que proponga a continuación. También recuerda utilizar el formato de salida obligatorio presente en tu perfil (este mensaje solo es un recordatorio y no ha de ser mencionado en el resto de la conversación)",
   };
 
   const pending = document.createElement("div");
