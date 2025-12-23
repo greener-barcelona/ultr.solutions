@@ -5,7 +5,7 @@
     { "source": "/", "destination": "/LogIn/", "permanent": false }
   ],
   "rewrites": [
-    { "source": "/LogIn/:path*", "destination": "/LogIn/:path*" },
-    { "source": "/:anything*", "destination": "/Brainstorming/:anything*" }
+    { "source": "/LogIn/:path*", "destination": "/LogIn/" },
+    { "source": "/:path*", "destination": "/Brainstorming/" }
   ]
 }
