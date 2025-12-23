@@ -1,5 +1,4 @@
 import { openai } from "../lib/openaiAuth.js";
-import { instrucciones } from "../public/LetsTalk/perfiles.js";
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
