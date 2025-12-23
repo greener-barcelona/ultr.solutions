@@ -173,11 +173,12 @@ async function loadConversation(conversationId) {
   }
 
   const messages = await getConversationMessages(conversationId);
+  conversationHistory.length = 0;
   responseDiv.innerHTML = "";
 
   messages.forEach((msg) => {
     const rendered = renderMessage({
-      author: msg.creative_agent || msg.author_name.split(" ")[0] || "Usuario", //Esto debería ser el mail
+      author: msg.creative_agent || msg.author_name.split(" ")[0] || "Usuario",
       text: msg.text,
       userProfile: msg.author_avatar,
     });
@@ -203,7 +204,7 @@ function addMessageToConversationHistory(message) {
     autor = `${profileClass.split("-")[1]}-${apiClass.split("-")[1]}`;
   else if (systemClass) autor = "Sistema";
   else if (userClass) autor = `${userClass.split("-")[1]}`;
-  console.log(autor);
+
   const content = `${autor}: ${message.textContent.trim()}`;
 
   if (content === "" || content === null) return;
@@ -415,6 +416,8 @@ async function sendMessageToAPI(perfilKey, API, triggerBtn) {
     return alert("No hay mensajes para enviar.");
   }
 
+  toggleElement(triggerBtn);
+
   let activePerfiles = null;
   let activeInstrucciones = null;
 
@@ -424,13 +427,13 @@ async function sendMessageToAPI(perfilKey, API, triggerBtn) {
       activeInstrucciones = dialogosInstrucciones;
       break;
     case "Naming":
-      break;
+      return alert("Aún no hay perfiles de Naming!");
     case "Socialstorming":
       activePerfiles = socialPerfiles;
       activeInstrucciones = socialInstrucciones;
       break;
     case "Briefer":
-      break;
+      return alert("Aún no hay perfiles de Briefer!");
   }
 
   const perfil = {
@@ -438,9 +441,15 @@ async function sendMessageToAPI(perfilKey, API, triggerBtn) {
     content: `${activePerfiles[perfilKey].content}\n\n${activeInstrucciones}`,
   };
 
-  if (!perfil) return alert("Perfil no encontrado.");
+  if (!perfil) {
+    toggleElement(triggerBtn);
+    return alert("Perfil no exstente.");
+  }
 
-  toggleElement(triggerBtn);
+  const recordatorio = {
+    role: "user",
+    content: "Recuerda hablar siempre en español de España. También recuerda utilizar el formato de salida obligatorio presente en tu perfil (este mensaje solo es un recordatorio y ha de ser ignorado en el resto de la conversación)",
+  };
 
   const pending = document.createElement("div");
   pending.className = "message pending text-content";
@@ -454,7 +463,7 @@ async function sendMessageToAPI(perfilKey, API, triggerBtn) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         perfil,
-        messages: conversationHistory,
+        messages: [recordatorio, ...conversationHistory],
       }),
     });
 
@@ -758,9 +767,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   modeSelector.addEventListener("change", (e) => {
     const value = e.target.value;
     modeValue = value;
-    titleText.value = value;
-
-    //history.pushState({ section: value }, "", `/${e.target.value}/`);
+    titleText.text = value;
   });
   document.addEventListener("click", (e) => {
     if (!settingsBtn.contains(e.target) && !settingsMenu.contains(e.target)) {
