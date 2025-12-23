@@ -258,6 +258,7 @@ async function userSendMessage(textarea) {
 
   addMessageToConversationHistory(uiMessage);
   textarea.value = "";
+  console.log(conversationHistory);
   await saveMessage(activeConversationId, { text: text });
 }
 
