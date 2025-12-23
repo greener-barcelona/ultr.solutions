@@ -215,6 +215,8 @@ function addMessageToConversationHistory(message) {
       content: content,
     });
   }
+
+  console.log(conversationHistory);
 }
 
 //Mensajes
