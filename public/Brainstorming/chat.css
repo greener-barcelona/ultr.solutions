@@ -577,11 +577,17 @@ body {
   transform: scale(0.98);
 }
 
-.chat-actions {
+/*.chat-actions {
   display: flex;
   gap: 14px;
   padding: 8px 80px 0;
   justify-content: flex-end;
+}*/
+.chat-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 80px 0;
 }
 
 .chat-action-btn {
@@ -603,6 +609,12 @@ body {
   width: 16px;
   height: 16px;
   stroke: currentColor;
+}
+.chat-actions-left,
+.chat-actions-right {
+  display: flex;
+  gap: 14px;
+  align-items: center;
 }
 
 .conversations::-webkit-scrollbar,
@@ -696,24 +708,18 @@ body {
 .multiplier-icon {
   width: 18px;
   height: 18px;
-
   font-size: 11px;
   font-weight: 600;
-  line-height: 1;
-
+  border-radius: 50%;
+  color: var(--text-light);
   display: flex;
   align-items: center;
   justify-content: center;
-
-  border-radius: 50%;
-  color: var(--text-light);
 }
 
-/* Hover igual que el resto */
 .multiplier-icon:hover {
   color: var(--text-dark);
 }
-
 @media (max-width: 1024px) {
   .sidebar {
     width: 350px;
