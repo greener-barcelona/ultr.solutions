@@ -2,9 +2,7 @@
   "version": 2,
   "outputDirectory": "public",
   "redirects": [
-    { "source": "/", "destination": "/LogIn/", "permanent": false }
-  ],
-  "rewrites": [
+    { "source": "/", "destination": "/LogIn/", "permanent": false },
     { "source": "/LogIn/:path*", "destination": "/LogIn/" },
     { "source": "/:path*", "destination": "/Brainstorming/" }
   ]
