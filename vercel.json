@@ -2,11 +2,6 @@
   "version": 2,
   "outputDirectory": "public",
   "redirects": [
-    { "source": "/", "destination": "/LogIn/", "permanent": false },
-    {
-      "source": "/:path((?!LogIn).*)",
-      "destination": "/Brainstorming/",
-      "permanent": false
-    }
+    { "source": "/", "destination": "/LogIn/", "permanent": false }
   ]
 }

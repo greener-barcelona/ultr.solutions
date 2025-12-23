@@ -739,7 +739,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const value = e.target.value;
     modeValue = value;
 
-    history.pushState({ section: value }, "", `/${e.target.value}/`);
+    //history.pushState({ section: value }, "", `/${e.target.value}/`);
   });
   document.addEventListener("click", (e) => {
     if (!settingsBtn.contains(e.target) && !settingsMenu.contains(e.target)) {
