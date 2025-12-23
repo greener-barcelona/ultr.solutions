@@ -613,6 +613,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const summaryBtn = document.getElementById("summaryBtn");
   const fileInput = document.getElementById("fileInput");
   const modeSelector = document.getElementById("selector");
+  const titleText = document.getElementById("title");
 
   if (
     !searchBtn ||
@@ -738,6 +739,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   modeSelector.addEventListener("change", (e) => {
     const value = e.target.value;
     modeValue = value;
+    titleText.value = value;
 
     //history.pushState({ section: value }, "", `/${e.target.value}/`);
   });

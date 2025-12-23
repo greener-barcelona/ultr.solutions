@@ -3,9 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Brainstorming</title>
+    <title id="title">Brainstorming</title>
     <link rel="stylesheet" href="chat.css" />
-    <link rel="icon" href="../Images/ultr_logo.png" type="image/png">
+    <link rel="icon" href="../Images/ultr_logo.png" type="image/png" />
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.41.1/dist/umd/supabase.js"></script>
   </head>
   <body>
@@ -125,6 +125,12 @@
             <path d="M14 2v6h6M12 18v-6M9 15l3 3 3-3" />
           </svg>
         </button>
+      </div>
+
+      <div class="multiplier-toolbar">
+        <button class="multiplier-btn active" data-multiplier="3">x3</button>
+        <button class="multiplier-btn" data-multiplier="6">x6</button>
+        <button class="multiplier-btn" data-multiplier="12">x12</button>
       </div>
 
       <div class="input-area">
