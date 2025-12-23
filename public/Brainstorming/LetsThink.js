@@ -259,7 +259,6 @@ async function userSendMessage(textarea) {
 
   addMessageToConversationHistory(uiMessage);
   textarea.value = "";
-  console.log(conversationHistory);
   await saveMessage(activeConversationId, { text: text });
 }
 
@@ -417,6 +416,8 @@ async function sendMessageToAPI(perfilKey, API, triggerBtn) {
     return alert("No hay mensajes para enviar.");
   }
 
+  toggleElement(triggerBtn);
+
   let activePerfiles = null;
   let activeInstrucciones = null;
 
@@ -426,13 +427,13 @@ async function sendMessageToAPI(perfilKey, API, triggerBtn) {
       activeInstrucciones = dialogosInstrucciones;
       break;
     case "Naming":
-      break;
+      return alert("Aún no hay perfiles de Naming!");
     case "Socialstorming":
       activePerfiles = socialPerfiles;
       activeInstrucciones = socialInstrucciones;
       break;
     case "Briefer":
-      break;
+      return alert("Aún no hay perfiles de Briefer!");
   }
 
   const perfil = {
@@ -440,9 +441,15 @@ async function sendMessageToAPI(perfilKey, API, triggerBtn) {
     content: `${activePerfiles[perfilKey].content}\n\n${activeInstrucciones}`,
   };
 
-  if (!perfil) return alert("Perfil no encontrado.");
+  if (!perfil) {
+    toggleElement(triggerBtn);
+    return alert("Perfil no exstente.");
+  }
 
-  toggleElement(triggerBtn);
+  const recordatorio = {
+    role: "user",
+    content: "Recuerda hablar siempre en español de España. También recuerda utilizar el formato de salida obligatorio presente en tu perfil (este mensaje solo es un recordatorio y ha de ser ignorado en el resto de la conversación)",
+  };
 
   const pending = document.createElement("div");
   pending.className = "message pending text-content";
@@ -456,7 +463,7 @@ async function sendMessageToAPI(perfilKey, API, triggerBtn) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         perfil,
-        messages: conversationHistory,
+        messages: [recordatorio, ...conversationHistory],
       }),
     });
 
