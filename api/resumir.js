@@ -27,8 +27,7 @@ export default async function handler(req, res) {
             - Títulos y subtítulos, ideas separadas por espacios
             - Resalta conceptos clave en negrita
             - Emojis moderados para guiar lectura y énfasis
-            - No firmes tu respuesta ni indiques número de palabras
-`,
+            - No firmes tu respuesta ni indiques número de palabras`,
         },
         {
           role: "user",
