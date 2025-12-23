@@ -1,10 +1,14 @@
 {
   "version": 2,
+  "outputDirectory": "public",
   "redirects": [
     { "source": "/", "destination": "/LogIn/", "permanent": false }
   ],
   "rewrites": [
-    { "source": "/LogIn/:path*", "destination": "/LogIn/:path*" },
-    { "source": "/(Brainstorming|Naming|Socialstorming|Briefer)/:path*", "destination": "/Brainstorming/:path*" }
+    { "source": "/LogIn/:path*", "destination": "/LogIn/index.html" },
+    {
+      "source": "/:path*",
+      "destination": "/Brainstorming/index.html"
+    }
   ]
 }

@@ -23,7 +23,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc =
 let activeConversationId = null;
 let cachedConversations = null;
 
-let modeValue = "";
+let modeValue = "Biodirectorio";
 let title = "";
 const conversationHistory = [];
 
@@ -114,7 +114,7 @@ function addConversationToSidebar(conv) {
       alert("Error al renombrar");
       return;
     }
-   await refreshCachedConversations();
+    await refreshCachedConversations();
     if (activeConversationId === conv.id) {
       title = newTitle.trim();
     }
@@ -387,14 +387,19 @@ async function extractPDFText(file) {
 
 //Auxiliares
 
-function replaceDoubleAsterisks(text) {
-  let open = true;
+function replaceWeirdChars(text) {
+  const htmlFreeText = text.replace(/```html|```/g, "");
 
-  return text.replace(/\*\*/g, () => {
+  let open = true;
+  const asteriskFreeText = htmlFreeText.replace(/\*\*/g, () => {
     const tag = open ? "<strong>" : "</strong>";
     open = !open;
     return tag;
   });
+
+  const hashtagFreeText = asteriskFreeText.replace(/#{2,}/g, "");
+
+  return hashtagFreeText;
 }
 
 function toggleElement(element) {
@@ -459,7 +464,7 @@ async function sendMessageToAPI(perfilKey, API, triggerBtn) {
     }
 
     const data = await res.json();
-    const text = replaceDoubleAsterisks(data.reply.replace(/```html|```/g, ""));
+    const text = replaceWeirdChars(data.reply);
 
     if (text && text.trim() !== "") {
       pending.remove();
@@ -562,9 +567,7 @@ async function summarizeConversation(button) {
     if (data.reply && data.reply.trim() !== "") {
       pending.remove();
 
-      const cleatext = replaceDoubleAsterisks(
-        data.reply.replace(/```html|```/g, "")
-      );
+      const cleatext = replaceWeirdChars(data.reply);
 
       const replyDiv = renderMessage({
         author: `openai-summary`,
@@ -632,7 +635,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
-  modeValue = window.location.pathname.split('/')[1];
+  modeValue = window.location.pathname.split("/")[1];
 
   await ensureAppUser();
   await loadSidebarConversations();
@@ -736,7 +739,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const value = e.target.value;
     modeValue = value;
 
-    history.pushState({ section: value }, "", `/${e.target.value}/`);
+    //history.pushState({ section: value }, "", `/${e.target.value}/`);
   });
   document.addEventListener("click", (e) => {
     if (!settingsBtn.contains(e.target) && !settingsMenu.contains(e.target)) {
