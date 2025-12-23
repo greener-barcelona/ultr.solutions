@@ -19,15 +19,29 @@ export default async function handler(req, res) {
       messages: [
         {
           role: "system",
-          content: `Eres un experto generador de briefs y resúmenes que ayuda a la hora de sintetizar largas conversaciones entre muchos usuarios.\n${instrucciones}`,
+          content: `
+          Eres un experto generador de briefs y resúmenes que ayuda a la hora de sintetizar largas conversaciones entre muchos usuarios.
+          ### Formato de Respuesta (OBLIGATORIO)
+            - HTML limpio y autocontenible (no alterar CSS externo ni body) (MUY IMPORTANTE)
+            - Texto negro, sin margenes ni paddings
+            - Títulos y subtítulos, ideas separadas por espacios
+            - Resalta conceptos clave en negrita
+            - Emojis moderados para guiar lectura y énfasis
+            - No firmes tu respuesta ni indiques número de palabras
+`,
         },
         {
           role: "user",
-          content: `Necesito que hagas un resumen exhaustivo de la siguiente conversación entre varias personas: ${contenido}`,
+          content: `${contenido}
+          Quiero que analices este diálogo y definas:  
+          - 1. En un párrafo breve, el objeto de la conversación  
+          - 2. Los 20 mejores insights que se descubren en la conversación 
+          - 3. Las 20 mejores ideas que se proponen para ajustar, afinar, modificar el planteo inicial. 
+          - 4. En que afectan a la temática inicial propuesta estos insights e ideas.`,
         },
       ],
     });
-    
+
     const text = response.choices[0].message.content;
     res.json({ reply: text });
   } catch (err) {
