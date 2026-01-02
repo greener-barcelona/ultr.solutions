@@ -450,7 +450,8 @@ async function sendMessageToAPI(perfilKey, API, triggerBtn) {
 
   const recordatorio = {
     role: "user",
-    content: "Es muy importante que tengas en cuenta que voy a querer empear un debate acerca de los temas que proponga a continuación. También recuerda utilizar el formato de salida obligatorio presente en tu perfil (este mensaje solo es un recordatorio y no ha de ser mencionado en el resto de la conversación)",
+    content:
+      "Es muy importante que tengas en cuenta que voy a querer empear un debate acerca de los temas que proponga a continuación. También recuerda utilizar el formato de salida obligatorio presente en tu perfil (este mensaje solo es un recordatorio y no ha de ser mencionado en el resto de la conversación)",
   };
 
   const pending = document.createElement("div");
@@ -605,6 +606,50 @@ async function summarizeConversation(button) {
     toggleElement(button);
   }
 }
+// Devuelve N botones de perfil aleatorios (los grandes de abajo)
+function getRandomProfileButtons(count) {
+  const all = Array.from(
+    document.querySelectorAll("button[data-perfil][data-api]")
+  );
+
+  if (all.length === 0) {
+    alert("No hay perfiles configurados.");
+    return [];
+  }
+
+  const shuffled = [...all];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+
+  return shuffled.slice(0, Math.min(count, shuffled.length));
+}
+
+// Ejecuta 3 / 6 / 12 perfiles en serie
+async function runProfilesChain(count, multiplierBtn) {
+  const selectedButtons = getRandomProfileButtons(count);
+  if (selectedButtons.length === 0) return;
+
+  if (!textarea.value.trim() && conversationHistory.length === 0) {
+    alert("Escribe un mensaje antes de usar varios perfiles.");
+    return;
+  }
+
+  if (multiplierBtn) toggleElement(multiplierBtn);
+
+  try {
+    for (const btn of selectedButtons) {
+      const perfilKey = btn.dataset.perfil;
+      const api = btn.dataset.api;
+
+      await sendMessageToAPI(perfilKey, api, btn);
+    }
+  } finally {
+    if (multiplierBtn) toggleElement(multiplierBtn);
+  }
+}
+
 const textarea = document.getElementById("userInputArea");
 
 const autoResizeTextarea = (el) => {
@@ -644,6 +689,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   const fileInput = document.getElementById("fileInput");
   const modeSelector = document.getElementById("selector");
   const titleText = document.getElementById("title");
+  const multiplier3 = document.getElementById("multiplier3");
+  const multiplier6 = document.getElementById("multiplier6");
+  const multiplier12 = document.getElementById("multiplier12");
 
   if (
     !searchBtn ||
@@ -664,6 +712,23 @@ document.addEventListener("DOMContentLoaded", async () => {
   ) {
     console.warn("Buscador no inicializado (elementos faltantes)");
     return;
+  }
+  if (multiplier3) {
+    multiplier3.addEventListener("click", () =>
+      runProfilesChain(3, multiplier3)
+    );
+  }
+
+  if (multiplier6) {
+    multiplier6.addEventListener("click", () =>
+      runProfilesChain(6, multiplier6)
+    );
+  }
+
+  if (multiplier12) {
+    multiplier12.addEventListener("click", () =>
+      runProfilesChain(12, multiplier12)
+    );
   }
 
   modeValue = window.location.pathname.split("/")[1];

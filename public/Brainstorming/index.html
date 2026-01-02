@@ -74,76 +74,91 @@
         </select>
       </div>
       <div class="chat-area" id="messages"></div>
-     <div class="chat-actions" id="chatActions" hidden>
-  <!-- IZQUIERDA: multiplicadores -->
-  <div class="chat-actions-left">
-    <button class="chat-action-btn multiplier-icon" title="Usar 3 perfiles">
-      x3
-    </button>
-    <button class="chat-action-btn multiplier-icon" title="Usar 6 perfiles">
-      x6
-    </button>
-    <button class="chat-action-btn multiplier-icon" title="Usar 12 perfiles">
-      x12
-    </button>
-  </div>
+      <div class="chat-actions" id="chatActions" hidden>
+        <!-- IZQUIERDA: multiplicadores -->
+        <div class="chat-actions-left">
+          <button
+            class="chat-action-btn multiplier-icon"
+            id="multiplier3"
+            data-count="3"
+            title="Usar 3 perfiles"
+          >
+            x3
+          </button>
+          <button
+            class="chat-action-btn multiplier-icon"
+            id="multiplier6"
+            data-count="6"
+            title="Usar 6 perfiles"
+          >
+            x6
+          </button>
+          <button
+            class="chat-action-btn multiplier-icon"
+            id="multiplier12"
+            data-count="12"
+            title="Usar 12 perfiles"
+          >
+            x12
+          </button>
+        </div>
 
-  <!-- DERECHA: acciones de exportación -->
-  <div class="chat-actions-right">
-    <button
-      class="chat-action-btn"
-      id="summaryBtn"
-      title="Resumir conversación"
-    >
-      <svg
-        class="summary-icon"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-      >
-        <path
-          d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
-        />
-      </svg>
-    </button>
+        <!-- DERECHA: acciones de exportación -->
+        <div class="chat-actions-right">
+          <button
+            class="chat-action-btn"
+            id="summaryBtn"
+            title="Resumir conversación"
+          >
+            <svg
+              class="summary-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path
+                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
+              />
+            </svg>
+          </button>
 
-    <button
-      class="chat-action-btn"
-      id="exportBtn"
-      title="Exportar conversación"
-    >
-      <svg
-        class="export-icon"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-      >
-        <path
-          d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"
-        />
-      </svg>
-    </button>
+          <button
+            class="chat-action-btn"
+            id="exportBtn"
+            title="Exportar conversación"
+          >
+            <svg
+              class="export-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path
+                d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"
+              />
+            </svg>
+          </button>
 
-    <button
-      class="chat-action-btn"
-      id="summaryPdfBtn"
-      title="Resumir y exportar conversación"
-    >
-      <svg
-        class="summary-pdf-icon"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-      >
-        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
-        <path d="M14 2v6h6M12 18v-6M9 15l3 3 3-3" />
-      </svg>
-    </button>
-  </div>
-</div>
+          <button
+            class="chat-action-btn"
+            id="summaryPdfBtn"
+            title="Resumir y exportar conversación"
+          >
+            <svg
+              class="summary-pdf-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+              <path d="M14 2v6h6M12 18v-6M9 15l3 3 3-3" />
+            </svg>
+          </button>
+        </div>
+      </div>
 
       <div class="input-area">
         <div class="input-wrapper">
