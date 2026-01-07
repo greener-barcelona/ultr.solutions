@@ -647,9 +647,40 @@ async function runProfilesChain(count, multiplierBtn) {
     }
   } finally {
     if (multiplierBtn) toggleElement(multiplierBtn);
+    notifyChainFinished(selectedButtons.length);
   }
 }
+function showToast(message) {
+  const toast = document.createElement("div");
+  toast.className = "toast";
+  toast.textContent = message;
+  document.body.appendChild(toast);
 
+  // fuerza reflow para activar la transición
+  void toast.offsetHeight;
+  toast.classList.add("show");
+
+  setTimeout(() => {
+    toast.classList.remove("show");
+    setTimeout(() => toast.remove(), 200);
+  }, 3000);
+}
+
+function notifyChainFinished(count) {
+  const text = `Han respondido ${count} perfiles. Fin de la ronda.`;
+
+  const systemMsg = renderMessage({
+    author: "system",
+    text,
+    userProfile: null,
+  });
+
+  addMessageToConversationHistory(systemMsg);
+  responseDiv.appendChild(systemMsg);
+  responseDiv.scrollTop = responseDiv.scrollHeight;
+
+  showToast(text);
+}
 const textarea = document.getElementById("userInputArea");
 
 const autoResizeTextarea = (el) => {

@@ -729,7 +729,25 @@ body {
   align-items: center;
   justify-content: center;
 }
+.toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: #2d2d2d;
+  color: #fff;
+  padding: 10px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  z-index: 9999;
+}
 
+.toast.show {
+  opacity: 1;
+  transform: translateY(0);
+}
 .multiplier-icon:hover {
   color: var(--text-dark);
 }
