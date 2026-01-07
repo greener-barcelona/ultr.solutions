@@ -23,7 +23,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc =
 let activeConversationId = null;
 let cachedConversations = null;
 
-let modeValue = "Biodirectorio";
+let modeValue = "Brainstorming";
 let title = "";
 const conversationHistory = [];
 
@@ -418,8 +418,6 @@ async function sendMessageToAPI(perfilKey, API, triggerBtn) {
     return alert("No hay mensajes para enviar.");
   }
 
-  console.log(dialogoPerfiles[perfilKey]);
-
   toggleElement(triggerBtn);
 
   let activePerfiles = null;
@@ -439,6 +437,8 @@ async function sendMessageToAPI(perfilKey, API, triggerBtn) {
     case "Briefer":
       return alert("Aún no hay perfiles de Briefer!");
   }
+
+  console.log(activePerfiles[perfilKey]);
 
   const perfil = {
     role: "system",
@@ -763,8 +763,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       runProfilesChain(12, multiplier12, textarea)
     );
   }
-
-  modeValue = window.location.pathname.split("/")[1];
 
   await ensureAppUser();
   await loadSidebarConversations();
