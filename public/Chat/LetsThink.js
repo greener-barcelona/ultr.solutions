@@ -628,23 +628,24 @@ function getRandomProfileButtons(count) {
   return shuffled.slice(0, Math.min(count, shuffled.length));
 }
 
-// Ejecuta 3 / 6 / 12 perfiles en serie, ligados a la conversación donde se clicó
+// Ejecuta 3 / 6 / 12 perfiles en serie, SIN volver a mandar el mensaje del usuario
 async function runProfilesChain(count, multiplierBtn) {
   const textareaEl = document.getElementById("userInputArea");
   if (!textareaEl) return;
 
-  if (!textareaEl.value.trim() && conversationHistory.length === 0) {
-    alert("Escribe un mensaje antes de usar varios perfiles.");
+  // Exigimos que ya exista al menos 1 mensaje en el historial
+  if (conversationHistory.length === 0) {
+    alert("Primero envía un mensaje (Enter) y luego usa x3 / x6 / x12.");
     return;
-  }
-  if (textareaEl.value.trim()) {
-    await userSendMessage(textareaEl);
   }
 
   const selectedButtons = getRandomProfileButtons(count);
   if (selectedButtons.length === 0) return;
+
   const conversationIdAtStart = activeConversationId;
   const convTitleAtStart = title || "esta conversación";
+
+  // Clonamos el historial actual solo para la cadena
   const chainHistory = [...conversationHistory];
 
   if (multiplierBtn) toggleElement(multiplierBtn);
@@ -653,6 +654,8 @@ async function runProfilesChain(count, multiplierBtn) {
     for (const btn of selectedButtons) {
       const perfilKey = btn.dataset.perfil;
       const api = btn.dataset.api;
+
+      // Aquí usas tu función nueva, NO sendMessageToAPI
       await sendProfileInChain(
         perfilKey,
         api,
