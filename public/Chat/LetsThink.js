@@ -28,6 +28,7 @@ let title = "";
 const conversationHistory = [];
 
 const responseDiv = document.getElementById("messages");
+const textarea = document.getElementById("userInputArea");
 
 //Sesión
 
@@ -227,7 +228,7 @@ async function refreshCachedConversations() {
   }
 }
 
-async function userSendMessage(textarea) {
+async function userSendMessage() {
   if (!textarea || !responseDiv) return null;
 
   const text = textarea.value.trim();
@@ -373,6 +374,7 @@ async function onFileLoaded(e, fileInput) {
     fileInput.value = "";
   }
 }
+
 async function extractPDFText(file) {
   const arrayBuffer = await file.arrayBuffer();
   const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
@@ -409,9 +411,9 @@ function toggleElement(element) {
   element.disabled = !element.disabled;
 }
 
-const autoResizeTextarea = (el) => {
-  el.style.height = "auto";
-  el.style.height = Math.min(el.scrollHeight, 140) + "px";
+const autoResizeTextarea = () => {
+  textarea.style.height = "auto";
+  textarea.style.height = Math.min(textarea.scrollHeight, 140) + "px";
 };
 
 //Endpoints
@@ -634,6 +636,8 @@ function getRandomProfileButtons(count) {
 }
 
 async function runProfilesChain(count, multiplierBtn) {
+  await userSendMessage();
+  
   if (conversationHistory.length === 0) {
     alert("Primero envía un mensaje (Enter) y luego usa x3 / x6 / x12.");
     return;
@@ -806,7 +810,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   const settingsMenu = document.getElementById("settingsMenu");
   const logoutBtn = document.getElementById("logoutBtn");
   const newChatBtn = document.getElementById("newChatBtn");
-  const textarea = document.getElementById("userInputArea");
   const exportBtn = document.getElementById("exportBtn");
   const summaryPdfBtn = document.getElementById("summaryPdfBtn");
   const summaryBtn = document.getElementById("summaryBtn");
@@ -920,12 +923,12 @@ document.addEventListener("DOMContentLoaded", async () => {
       setTimeout(() => {
         textarea.style.height = "auto";
       }, 0);
-      await userSendMessage(textarea);
+      await userSendMessage();
     }
   });
 
   textarea.addEventListener("input", () => {
-    autoResizeTextarea(textarea);
+    autoResizeTextarea();
   });
 
   newChatBtn.addEventListener("click", async () => {
