@@ -628,15 +628,24 @@ function getRandomProfileButtons(count) {
   return shuffled.slice(0, Math.min(count, shuffled.length));
 }
 
-// Ejecuta 3 / 6 / 12 perfiles en serie
-async function runProfilesChain(count, multiplierBtn, textarea) {
-  const selectedButtons = getRandomProfileButtons(count);
-  if (selectedButtons.length === 0) return;
+// Ejecuta 3 / 6 / 12 perfiles en serie, ligados a la conversación donde se clicó
+async function runProfilesChain(count, multiplierBtn) {
+  const textareaEl = document.getElementById("userInputArea");
+  if (!textareaEl) return;
 
-  if (!textarea.value.trim() && conversationHistory.length === 0) {
+  if (!textareaEl.value.trim() && conversationHistory.length === 0) {
     alert("Escribe un mensaje antes de usar varios perfiles.");
     return;
   }
+  if (textareaEl.value.trim()) {
+    await userSendMessage(textareaEl);
+  }
+
+  const selectedButtons = getRandomProfileButtons(count);
+  if (selectedButtons.length === 0) return;
+  const conversationIdAtStart = activeConversationId;
+  const convTitleAtStart = title || "esta conversación";
+  const chainHistory = [...conversationHistory];
 
   if (multiplierBtn) toggleElement(multiplierBtn);
 
@@ -644,12 +653,16 @@ async function runProfilesChain(count, multiplierBtn, textarea) {
     for (const btn of selectedButtons) {
       const perfilKey = btn.dataset.perfil;
       const api = btn.dataset.api;
-
-      await sendMessageToAPI(perfilKey, api, btn);
+      await sendProfileInChain(
+        perfilKey,
+        api,
+        chainHistory,
+        conversationIdAtStart
+      );
     }
   } finally {
     if (multiplierBtn) toggleElement(multiplierBtn);
-    notifyChainFinished(selectedButtons.length);
+    notifyChainFinished(count, conversationIdAtStart, convTitleAtStart);
   }
 }
 function showToast(message) {
@@ -658,7 +671,6 @@ function showToast(message) {
   toast.textContent = message;
   document.body.appendChild(toast);
 
-  // fuerza reflow para activar la transición
   void toast.offsetHeight;
   toast.classList.add("show");
 
@@ -667,42 +679,128 @@ function showToast(message) {
     setTimeout(() => toast.remove(), 200);
   }, 3000);
 }
+async function sendProfileInChain(perfilKey, API, chainHistory, conversationId) {
+  let activePerfiles = null;
+  let activeInstrucciones = null;
 
-function notifyChainFinished(count) {
-  const text = `Han respondido ${count} perfiles. Fin de la ronda.`;
+  switch (modeValue) {
+    case "Brainstorming":
+      activePerfiles = dialogoPerfiles;
+      activeInstrucciones = dialogosInstrucciones;
+      break;
+    case "Naming":
+      console.warn("Cadena: aún no hay perfiles de Naming");
+      return;
+    case "Socialstorming":
+      activePerfiles = socialPerfiles;
+      activeInstrucciones = socialInstrucciones;
+      break;
+    case "Briefer":
+      console.warn("Cadena: aún no hay perfiles de Briefer");
+      return;
+  }
 
-  const systemMsg = renderMessage({
-    author: "system",
+  const perfil = {
+    role: "system",
+    content: `${activePerfiles[perfilKey].content}\n\n${activeInstrucciones}`,
+  };
+
+  const recordatorio = {
+    role: "user",
+    content:
+      "Es muy importante que tengas en cuenta que voy a querer empear un debate acerca de los temas que proponga a continuación. También recuerda utilizar el formato de salida obligatorio presente en tu perfil (este mensaje solo es un recordatorio y no ha de ser mencionado en el resto de la conversación)",
+  };
+
+  const pending = document.createElement("div");
+  pending.className = "message pending text-content";
+  pending.textContent = `Enviando (${perfilKey})...`;
+
+  if (activeConversationId === conversationId) {
+    responseDiv.appendChild(pending);
+    responseDiv.scrollTop = responseDiv.scrollHeight;
+  }
+
+  try {
+    const res = await fetch(`/api/${API}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        perfil,
+        messages: [recordatorio, ...chainHistory],
+      }),
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json();
+      throw new Error(errorData.error || "Error al enviar.");
+    }
+
+    const data = await res.json();
+    const text = replaceWeirdChars(data.reply);
+    if (!text || !text.trim()) {
+      throw new Error("La IA no generó respuesta");
+    }
+
+    chainHistory.push({
+      role: "user",
+      content: `${perfilKey}-${API}: ${text}`,
+    });
+
+    await saveMessage(conversationId, {
+      text,
+      creativeAgent: `${perfilKey}-${API}`,
+    });
+
+    if (activeConversationId === conversationId) {
+      pending.remove();
+
+      const replyDiv = renderMessage({
+        author: `${perfilKey}-${API}`,
+        text,
+      });
+      addMessageToConversationHistory(replyDiv);
+      responseDiv.appendChild(replyDiv);
+      responseDiv.scrollTop = responseDiv.scrollHeight;
+    } else {
+      pending.remove();
+    }
+  } catch (err) {
+    console.error(err);
+    pending.textContent = `Error: ${err.message}`;
+    pending.classList.remove("pending");
+    pending.classList.add("error");
+  }
+}
+
+function notifyChainFinished(count, conversationId, convTitle) {
+  const text = `Han respondido ${count} perfiles en "${convTitle}". Fin de la ronda.`;
+
+  saveMessage(conversationId, {
     text,
-    userProfile: null,
-  });
+    creativeAgent: "system",
+  }).catch((e) =>
+    console.error("Error guardando mensaje de sistema:", e)
+  );
 
-  addMessageToConversationHistory(systemMsg);
-  responseDiv.appendChild(systemMsg);
-  responseDiv.scrollTop = responseDiv.scrollHeight;
+  if (activeConversationId === conversationId) {
+    const systemMsg = renderMessage({
+      author: "system",
+      text,
+      userProfile: null,
+    });
+    addMessageToConversationHistory(systemMsg);
+    responseDiv.appendChild(systemMsg);
+    responseDiv.scrollTop = responseDiv.scrollHeight;
+  }
 
   showToast(text);
 }
-//const textarea = document.getElementById("userInputArea");
 
 const autoResizeTextarea = (el) => {
   el.style.height = "auto";
   el.style.height = Math.min(el.scrollHeight, 140) + "px";
 };
 
-/*textarea.addEventListener("input", () => {
-  autoResizeTextarea(textarea);
-});*/
-
-// reset al enviar
-//const originalSend = textarea.value;
-/*textarea.addEventListener("keydown", (e) => {
-  if (e.key === "Enter" && !e.shiftKey) {
-    setTimeout(() => {
-      textarea.style.height = "auto";
-    }, 0);
-  }
-});*/
 //Inicialización
 
 document.addEventListener("DOMContentLoaded", async () => {
