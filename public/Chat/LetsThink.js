@@ -25,6 +25,7 @@ let cachedConversations = null;
 
 let modeValue = "Brainstorming";
 let title = "";
+let isChainRunning = false;
 const conversationHistory = [];
 
 const responseDiv = document.getElementById("messages");
@@ -635,8 +636,13 @@ function getRandomProfileButtons(count) {
 }
 
 async function runProfilesChain(count, multiplierBtn) {
-  toggleElement(multiplierBtn);
-  await userSendMessage();
+  const textareaEl = document.getElementById("userInputArea");
+  if (!textareaEl) return;
+
+  if (isChainRunning) {
+    alert("Ya hay una ronda de perfiles en marcha. Espera a que termine.");
+    return;
+  }
 
   if (conversationHistory.length === 0) {
     alert("Primero envía un mensaje (Enter) y luego usa x3 / x6 / x12.");
@@ -649,6 +655,11 @@ async function runProfilesChain(count, multiplierBtn) {
   const conversationIdAtStart = activeConversationId;
   const convTitleAtStart = title || "esta conversación";
 
+  const chainHistory = [...conversationHistory];
+
+  isChainRunning = true;
+  if (multiplierBtn) toggleElement(multiplierBtn);
+
   try {
     for (const btn of selectedButtons) {
       const perfilKey = btn.dataset.perfil;
@@ -657,12 +668,14 @@ async function runProfilesChain(count, multiplierBtn) {
       await sendProfileInChain(
         perfilKey,
         api,
+        chainHistory,
         conversationIdAtStart
       );
     }
   } finally {
     if (multiplierBtn) toggleElement(multiplierBtn);
     notifyChainFinished(count, conversationIdAtStart, convTitleAtStart);
+    isChainRunning = false;
   }
 }
 
