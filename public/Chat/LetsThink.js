@@ -736,8 +736,7 @@ async function sendProfileInChain(perfilKey, API, chainHistory, conversationId) 
   }
 
   try {
-    const historyForAPI = normalizeHistoryForAPI(chainHistory);
-
+    // OJO: usamos chainHistory tal cual, igual que sendMessageToAPI
     const res = await fetch(`/api/${API}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -758,6 +757,8 @@ async function sendProfileInChain(perfilKey, API, chainHistory, conversationId) 
       throw new Error("La IA no generó respuesta");
     }
 
+    // El perfil añade su intervención al historial de la CADENA
+    // para que los siguientes la tengan en cuenta
     chainHistory.push({
       role: "assistant",
       content: `${perfilKey}-${API}: ${text}`,
