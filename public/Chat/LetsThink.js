@@ -418,6 +418,8 @@ async function sendMessageToAPI(perfilKey, API, triggerBtn) {
     return alert("No hay mensajes para enviar.");
   }
 
+  console.log(dialogoPerfiles[perfilKey]);
+
   toggleElement(triggerBtn);
 
   let activePerfiles = null;
@@ -627,7 +629,7 @@ function getRandomProfileButtons(count) {
 }
 
 // Ejecuta 3 / 6 / 12 perfiles en serie
-async function runProfilesChain(count, multiplierBtn) {
+async function runProfilesChain(count, multiplierBtn, textarea) {
   const selectedButtons = getRandomProfileButtons(count);
   if (selectedButtons.length === 0) return;
 
@@ -746,19 +748,19 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
   if (multiplier3) {
     multiplier3.addEventListener("click", () =>
-      runProfilesChain(3, multiplier3)
+      runProfilesChain(3, multiplier3, textarea)
     );
   }
 
   if (multiplier6) {
     multiplier6.addEventListener("click", () =>
-      runProfilesChain(6, multiplier6)
+      runProfilesChain(6, multiplier6, textarea)
     );
   }
 
   if (multiplier12) {
     multiplier12.addEventListener("click", () =>
-      runProfilesChain(12, multiplier12)
+      runProfilesChain(12, multiplier12, textarea)
     );
   }
 
