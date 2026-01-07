@@ -672,6 +672,8 @@ async function runProfilesChain(count, multiplierBtn) {
         conversationIdAtStart
       );
     }
+
+    await summarizeChain(chainHistory, conversationIdAtStart, convTitleAtStart);
   } finally {
     if (multiplierBtn) toggleElement(multiplierBtn);
     notifyChainFinished(count, conversationIdAtStart, convTitleAtStart);
@@ -736,7 +738,6 @@ async function sendProfileInChain(perfilKey, API, chainHistory, conversationId) 
   }
 
   try {
-    // OJO: usamos chainHistory tal cual, igual que sendMessageToAPI
     const res = await fetch(`/api/${API}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -757,8 +758,6 @@ async function sendProfileInChain(perfilKey, API, chainHistory, conversationId) 
       throw new Error("La IA no generó respuesta");
     }
 
-    // El perfil añade su intervención al historial de la CADENA
-    // para que los siguientes la tengan en cuenta
     chainHistory.push({
       role: "assistant",
       content: `${perfilKey}-${API}: ${text}`,
@@ -787,6 +786,47 @@ async function sendProfileInChain(perfilKey, API, chainHistory, conversationId) 
     pending.textContent = `Error: ${err.message}`;
     pending.classList.remove("pending");
     pending.classList.add("error");
+  }
+}
+async function summarizeChain(chainHistory, conversationId, convTitle) {
+  try {
+    const res = await fetch(`/api/resumir`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        conversation: chainHistory,
+      }),
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json();
+      throw new Error(errorData.error || "Error al resumir.");
+    }
+
+    const data = await res.json();
+    const text = replaceWeirdChars(data.reply || "");
+
+    if (!text.trim()) {
+      console.warn("Resumen vacío o inexistente.");
+      return;
+    }
+
+    await saveMessage(conversationId, {
+      text,
+      creativeAgent: "openai-summary-chain",
+    });
+
+    if (activeConversationId === conversationId) {
+      const replyDiv = renderMessage({
+        author: "openai-summary-chain",
+        text: `<strong>Resumen de la ronda (${convTitle}):</strong><br>${text}`,
+      });
+      addMessageToConversationHistory(replyDiv);
+      responseDiv.appendChild(replyDiv);
+      responseDiv.scrollTop = responseDiv.scrollHeight;
+    }
+  } catch (err) {
+    console.error("Error generando resumen de la cadena:", err);
   }
 }
 
