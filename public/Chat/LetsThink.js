@@ -790,11 +790,21 @@ async function sendProfileInChain(perfilKey, API, chainHistory, conversationId) 
 }
 async function summarizeChain(chainHistory, conversationId, convTitle) {
   try {
+    const historyForSummary = chainHistory.map((m) => {
+      const content =
+        typeof m === "string" ? m : (m.content || "");
+
+      return {
+        role: "user",         
+        content: content,
+      };
+    });
+
     const res = await fetch(`/api/resumir`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        conversation: chainHistory,
+        conversation: historyForSummary,
       }),
     });
 
@@ -806,10 +816,7 @@ async function summarizeChain(chainHistory, conversationId, convTitle) {
     const data = await res.json();
     const text = replaceWeirdChars(data.reply || "");
 
-    if (!text.trim()) {
-      console.warn("Resumen vacío o inexistente.");
-      return;
-    }
+    if (!text.trim()) return;
 
     await saveMessage(conversationId, {
       text,
