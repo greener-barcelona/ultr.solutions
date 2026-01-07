@@ -680,8 +680,29 @@ function showToast(message) {
     setTimeout(() => toast.remove(), 200);
   }, 3000);
 }
+function normalizeHistoryForAPI(history) {
+  return history.map((m) => {
+    const raw = m.content || "";
+    const [maybeAuthor, ...rest] = raw.split(":");
+    const author = maybeAuthor.trim();
+    const text = rest.join(":").trim() || raw;
 
-async function sendProfileInChain(perfilKey, API, conversationId) {
+    let role = m.role || "user";
+
+    if (author === "Sistema") {
+      role = "system";
+    } else if (author && author.includes("-")) {
+      role = "assistant";
+    }
+
+    return {
+      role,
+      content: author ? `${author}: ${text}` : text,
+    };
+  });
+}
+
+async function sendProfileInChain(perfilKey, API, chainHistory, conversationId) {
   let activePerfiles = null;
   let activeInstrucciones = null;
 
@@ -723,12 +744,14 @@ async function sendProfileInChain(perfilKey, API, conversationId) {
   }
 
   try {
+    const historyForAPI = normalizeHistoryForAPI(chainHistory);
+
     const res = await fetch(`/api/${API}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         perfil,
-        messages: [recordatorio, ...conversationHistory],
+        messages: [recordatorio, ...historyForAPI],
       }),
     });
 
@@ -743,8 +766,8 @@ async function sendProfileInChain(perfilKey, API, conversationId) {
       throw new Error("La IA no generó respuesta");
     }
 
-    conversationHistory.push({
-      role: "user",
+    chainHistory.push({
+      role: "assistant",
       content: `${perfilKey}-${API}: ${text}`,
     });
 
