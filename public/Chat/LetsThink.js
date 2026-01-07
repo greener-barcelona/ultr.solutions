@@ -409,6 +409,11 @@ function toggleElement(element) {
   element.disabled = !element.disabled;
 }
 
+const autoResizeTextarea = (el) => {
+  el.style.height = "auto";
+  el.style.height = Math.min(el.scrollHeight, 140) + "px";
+};
+
 //Endpoints
 
 async function sendMessageToAPI(perfilKey, API, triggerBtn) {
@@ -437,8 +442,6 @@ async function sendMessageToAPI(perfilKey, API, triggerBtn) {
     case "Briefer":
       return alert("Aún no hay perfiles de Briefer!");
   }
-
-  console.log(activePerfiles[perfilKey]);
 
   const perfil = {
     role: "system",
@@ -608,7 +611,9 @@ async function summarizeConversation(button) {
     toggleElement(button);
   }
 }
-// Devuelve N botones de perfil aleatorios (los grandes de abajo)
+
+//x3 x6 x12
+
 function getRandomProfileButtons(count) {
   const all = Array.from(
     document.querySelectorAll("button[data-perfil][data-api]")
@@ -628,12 +633,7 @@ function getRandomProfileButtons(count) {
   return shuffled.slice(0, Math.min(count, shuffled.length));
 }
 
-// Ejecuta 3 / 6 / 12 perfiles en serie, SIN volver a mandar el mensaje del usuario
 async function runProfilesChain(count, multiplierBtn) {
-  const textareaEl = document.getElementById("userInputArea");
-  if (!textareaEl) return;
-
-  // Exigimos que ya exista al menos 1 mensaje en el historial
   if (conversationHistory.length === 0) {
     alert("Primero envía un mensaje (Enter) y luego usa x3 / x6 / x12.");
     return;
@@ -645,9 +645,6 @@ async function runProfilesChain(count, multiplierBtn) {
   const conversationIdAtStart = activeConversationId;
   const convTitleAtStart = title || "esta conversación";
 
-  // Clonamos el historial actual solo para la cadena
-  const chainHistory = [...conversationHistory];
-
   if (multiplierBtn) toggleElement(multiplierBtn);
 
   try {
@@ -655,11 +652,9 @@ async function runProfilesChain(count, multiplierBtn) {
       const perfilKey = btn.dataset.perfil;
       const api = btn.dataset.api;
 
-      // Aquí usas tu función nueva, NO sendMessageToAPI
       await sendProfileInChain(
         perfilKey,
         api,
-        chainHistory,
         conversationIdAtStart
       );
     }
@@ -682,7 +677,7 @@ function showToast(message) {
     setTimeout(() => toast.remove(), 200);
   }, 3000);
 }
-async function sendProfileInChain(perfilKey, API, chainHistory, conversationId) {
+async function sendProfileInChain(perfilKey, API, conversationId) {
   let activePerfiles = null;
   let activeInstrucciones = null;
 
@@ -729,7 +724,7 @@ async function sendProfileInChain(perfilKey, API, chainHistory, conversationId) 
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         perfil,
-        messages: [recordatorio, ...chainHistory],
+        messages: [recordatorio, ...conversationHistory],
       }),
     });
 
@@ -744,7 +739,7 @@ async function sendProfileInChain(perfilKey, API, chainHistory, conversationId) 
       throw new Error("La IA no generó respuesta");
     }
 
-    chainHistory.push({
+    conversationHistory.push({
       role: "user",
       content: `${perfilKey}-${API}: ${text}`,
     });
@@ -799,11 +794,6 @@ function notifyChainFinished(count, conversationId, convTitle) {
   showToast(text);
 }
 
-const autoResizeTextarea = (el) => {
-  el.style.height = "auto";
-  el.style.height = Math.min(el.scrollHeight, 140) + "px";
-};
-
 //Inicialización
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -849,19 +839,19 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
   if (multiplier3) {
     multiplier3.addEventListener("click", () =>
-      runProfilesChain(3, multiplier3, textarea)
+      runProfilesChain(3, multiplier3)
     );
   }
 
   if (multiplier6) {
     multiplier6.addEventListener("click", () =>
-      runProfilesChain(6, multiplier6, textarea)
+      runProfilesChain(6, multiplier6)
     );
   }
 
   if (multiplier12) {
     multiplier12.addEventListener("click", () =>
-      runProfilesChain(12, multiplier12, textarea)
+      runProfilesChain(12, multiplier12)
     );
   }
 
