@@ -681,26 +681,26 @@ function notifyChainFinished(count) {
 
   showToast(text);
 }
-const textarea = document.getElementById("userInputArea");
+//const textarea = document.getElementById("userInputArea");
 
 const autoResizeTextarea = (el) => {
   el.style.height = "auto";
   el.style.height = Math.min(el.scrollHeight, 140) + "px";
 };
 
-textarea.addEventListener("input", () => {
+/*textarea.addEventListener("input", () => {
   autoResizeTextarea(textarea);
-});
+});*/
 
 // reset al enviar
-const originalSend = textarea.value;
-textarea.addEventListener("keydown", (e) => {
+//const originalSend = textarea.value;
+/*textarea.addEventListener("keydown", (e) => {
   if (e.key === "Enter" && !e.shiftKey) {
     setTimeout(() => {
       textarea.style.height = "auto";
     }, 0);
   }
-});
+});*/
 //Inicialización
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -826,8 +826,15 @@ document.addEventListener("DOMContentLoaded", async () => {
   textarea.addEventListener("keydown", async (e) => {
     if (e.key === "Enter") {
       e.preventDefault();
+      setTimeout(() => {
+        textarea.style.height = "auto";
+      }, 0);
       await userSendMessage(textarea);
     }
+  });
+
+  textarea.addEventListener("input", () => {
+    autoResizeTextarea(textarea);
   });
 
   newChatBtn.addEventListener("click", async () => {
