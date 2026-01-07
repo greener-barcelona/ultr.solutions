@@ -693,27 +693,6 @@ function showToast(message) {
     setTimeout(() => toast.remove(), 200);
   }, 3000);
 }
-function normalizeHistoryForAPI(history) {
-  return history.map((m) => {
-    const raw = m.content || "";
-    const [maybeAuthor, ...rest] = raw.split(":");
-    const author = maybeAuthor.trim();
-    const text = rest.join(":").trim() || raw;
-
-    let role = m.role || "user";
-
-    if (author === "Sistema") {
-      role = "system";
-    } else if (author && author.includes("-")) {
-      role = "assistant";
-    }
-
-    return {
-      role,
-      content: author ? `${author}: ${text}` : text,
-    };
-  });
-}
 
 async function sendProfileInChain(perfilKey, API, chainHistory, conversationId) {
   let activePerfiles = null;
@@ -764,7 +743,7 @@ async function sendProfileInChain(perfilKey, API, chainHistory, conversationId) 
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         perfil,
-        messages: [recordatorio, ...historyForAPI],
+        messages: [recordatorio, ...chainHistory],
       }),
     });
 
