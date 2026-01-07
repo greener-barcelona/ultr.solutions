@@ -419,13 +419,12 @@ const autoResizeTextarea = () => {
 //Endpoints
 
 async function sendMessageToAPI(perfilKey, API, triggerBtn) {
+  toggleElement(triggerBtn);
   await userSendMessage();
 
   if (conversationHistory.length === 0) {
     return alert("No hay mensajes para enviar.");
   }
-
-  toggleElement(triggerBtn);
 
   let activePerfiles = null;
   let activeInstrucciones = null;
@@ -636,8 +635,9 @@ function getRandomProfileButtons(count) {
 }
 
 async function runProfilesChain(count, multiplierBtn) {
+  toggleElement(multiplierBtn);
   await userSendMessage();
-  
+
   if (conversationHistory.length === 0) {
     alert("Primero envía un mensaje (Enter) y luego usa x3 / x6 / x12.");
     return;
@@ -648,8 +648,6 @@ async function runProfilesChain(count, multiplierBtn) {
 
   const conversationIdAtStart = activeConversationId;
   const convTitleAtStart = title || "esta conversación";
-
-  if (multiplierBtn) toggleElement(multiplierBtn);
 
   try {
     for (const btn of selectedButtons) {
@@ -667,6 +665,7 @@ async function runProfilesChain(count, multiplierBtn) {
     notifyChainFinished(count, conversationIdAtStart, convTitleAtStart);
   }
 }
+
 function showToast(message) {
   const toast = document.createElement("div");
   toast.className = "toast";
@@ -681,6 +680,7 @@ function showToast(message) {
     setTimeout(() => toast.remove(), 200);
   }, 3000);
 }
+
 async function sendProfileInChain(perfilKey, API, conversationId) {
   let activePerfiles = null;
   let activeInstrucciones = null;
