@@ -559,8 +559,17 @@ async function exportConversation(button, summarize) {
   }
 }
 
-async function summarizeConversation(button) {
+async function summarizeConversationButton(button) {
   toggleElement(button);
+  const conversationIdAtStart = activeConversationId;
+  const convTitleAtStart = title || "esta conversación";
+
+  await summarizeConversation(conversationIdAtStart, convTitleAtStart);
+
+  toggleElement(button);
+}
+
+async function summarizeConversation(conversationId, convTitle) {
   const pending = document.createElement("div");
   pending.className = "message pending text-content";
   pending.textContent = "Resumiendo...";
@@ -588,12 +597,15 @@ async function summarizeConversation(button) {
 
       const cleatext = replaceWeirdChars(data.reply);
 
-      const replyDiv = renderMessage({
-        author: `summary-openai`,
-        text: cleatext,
-      });
-      addMessageToConversationHistory(replyDiv);
-      responseDiv.appendChild(replyDiv);
+      if (activeConversationId === conversationId) {
+        const replyDiv = renderMessage({
+          author: "summary-openai",
+          text: `<strong>Resumen de la ronda ${convTitle}:</strong><br>${text}`,
+        });
+        addMessageToConversationHistory(replyDiv);
+        responseDiv.appendChild(replyDiv);
+        responseDiv.scrollTop = responseDiv.scrollHeight;
+      }
 
       await saveMessage(activeConversationId, {
         text: cleatext,
@@ -606,11 +618,11 @@ async function summarizeConversation(button) {
     }
   } catch (error) {
     console.error("Error completo:", error);
-    pending.textContent = `Error: ${error.message}`;
-    pending.classList.remove("pending");
-    pending.classList.add("error");
-  } finally {
-    toggleElement(button);
+    if (activeConversationId === conversationId) {
+      pending.textContent = `Error: ${error.message}`;
+      pending.classList.remove("pending");
+      pending.classList.add("error");
+    }
   }
 }
 
@@ -664,14 +676,10 @@ async function runProfilesChain(count, multiplierBtn) {
       const perfilKey = btn.dataset.perfil;
       const api = btn.dataset.api;
 
-      await sendProfileInChain(
-        perfilKey,
-        api,
-        conversationIdAtStart
-      );
+      await sendProfileInChain(perfilKey, api, conversationIdAtStart);
     }
 
-    await summarizeChain(conversationIdAtStart, convTitleAtStart);
+    await summarizeConversation(conversationIdAtStart, convTitleAtStart);
   } finally {
     if (multiplierBtn) toggleElement(multiplierBtn);
     notifyChainFinished(count, conversationIdAtStart, convTitleAtStart);
@@ -722,11 +730,7 @@ function showToastSticky(message) {
   activeToast = toast;
 }
 
-async function sendProfileInChain(
-  perfilKey,
-  API,
-  conversationId
-) {
+async function sendProfileInChain(perfilKey, API, conversationId) {
   const perfil = getPerfilContent(perfilKey);
 
   const pending = document.createElement("div");
@@ -784,7 +788,7 @@ async function sendProfileInChain(
     pending.classList.add("error");
   }
 }
-async function summarizeChain(conversationId, convTitle) {
+/*async function summarizeChain(conversationId, convTitle) {
   try {
     const res = await fetch(`/api/resumir`, {
       method: "POST",
@@ -821,7 +825,7 @@ async function summarizeChain(conversationId, convTitle) {
   } catch (err) {
     console.error("Error generando resumen de la cadena:", err);
   }
-}
+}*/
 
 function notifyChainFinished(count, conversationId, convTitle) {
   const text = `Han respondido ${count} perfiles en "${convTitle}". Fin de la ronda.`;
@@ -998,7 +1002,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   summaryBtn.addEventListener("click", () => {
-    summarizeConversation(summaryBtn);
+    summarizeConversationButton(summaryBtn);
   });
 
   fileInput.addEventListener("change", async (e) => onFileLoaded(e, fileInput));
