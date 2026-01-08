@@ -636,8 +636,9 @@ function getRandomProfileButtons(count) {
 }
 
 async function runProfilesChain(count, multiplierBtn) {
-  const textareaEl = document.getElementById("userInputArea");
-  if (!textareaEl) return;
+  userSendMessage();
+
+  if (!textarea) return;
 
   if (isChainRunning) {
     alert("Ya hay una ronda de perfiles en marcha. Espera a que termine.");
