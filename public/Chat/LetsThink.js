@@ -4,6 +4,7 @@ import {
   dialogosInstrucciones,
   socialPerfiles,
   socialInstrucciones,
+  recordatorio,
 } from "./perfiles.js";
 import {
   sb,
@@ -417,6 +418,30 @@ const autoResizeTextarea = () => {
   textarea.style.height = Math.min(textarea.scrollHeight, 140) + "px";
 };
 
+function getPerfilContent(perfilKey) {
+  let activePerfiles = null;
+  let activeInstrucciones = null;
+
+  switch (modeValue) {
+    case "Brainstorming":
+      activePerfiles = dialogoPerfiles;
+      activeInstrucciones = dialogosInstrucciones;
+      break;
+    case "Naming":
+      console.warn("Cadena: aún no hay perfiles de Naming");
+      return;
+    case "Socialstorming":
+      activePerfiles = socialPerfiles;
+      activeInstrucciones = socialInstrucciones;
+      break;
+  }
+
+  return {
+    role: "system",
+    content: `${activePerfiles[perfilKey].content}\n\n${activeInstrucciones}`,
+  };
+}
+
 //Endpoints
 
 async function sendMessageToAPI(perfilKey, API, triggerBtn) {
@@ -427,39 +452,12 @@ async function sendMessageToAPI(perfilKey, API, triggerBtn) {
     return alert("No hay mensajes para enviar.");
   }
 
-  let activePerfiles = null;
-  let activeInstrucciones = null;
-
-  switch (modeValue) {
-    case "Brainstorming":
-      activePerfiles = dialogoPerfiles;
-      activeInstrucciones = dialogosInstrucciones;
-      break;
-    case "Naming":
-      return alert("Aún no hay perfiles de Naming!");
-    case "Socialstorming":
-      activePerfiles = socialPerfiles;
-      activeInstrucciones = socialInstrucciones;
-      break;
-    case "Briefer":
-      return alert("Aún no hay perfiles de Briefer!");
-  }
-
-  const perfil = {
-    role: "system",
-    content: `${activePerfiles[perfilKey].content}\n\n${activeInstrucciones}`,
-  };
+  const perfil = getPerfilContent(perfilKey);
 
   if (!perfil) {
     toggleElement(triggerBtn);
     return alert("Perfil no exstente.");
   }
-
-  const recordatorio = {
-    role: "user",
-    content:
-      "Es muy importante que tengas en cuenta que voy a querer empear un debate acerca de los temas que proponga a continuación. También recuerda utilizar el formato de salida obligatorio presente en tu perfil (este mensaje solo es un recordatorio y no ha de ser mencionado en el resto de la conversación)",
-  };
 
   const pending = document.createElement("div");
   pending.className = "message pending text-content";
@@ -589,7 +587,7 @@ async function summarizeConversation(button) {
       const cleatext = replaceWeirdChars(data.reply);
 
       const replyDiv = renderMessage({
-        author: `openai-summary`,
+        author: `summary-openai`,
         text: cleatext,
       });
       addMessageToConversationHistory(replyDiv);
@@ -597,7 +595,7 @@ async function summarizeConversation(button) {
 
       await saveMessage(activeConversationId, {
         text: cleatext,
-        creativeAgent: `openai-summary`,
+        creativeAgent: `summary-openai`,
       });
     } else {
       pending.textContent = "La IA no generó respuesta";
@@ -657,8 +655,6 @@ async function runProfilesChain(count, multiplierBtn) {
   const conversationIdAtStart = activeConversationId;
   const convTitleAtStart = title || "esta conversación";
 
-  const chainHistory = [...conversationHistory];
-
   isChainRunning = true;
 
   try {
@@ -669,12 +665,11 @@ async function runProfilesChain(count, multiplierBtn) {
       await sendProfileInChain(
         perfilKey,
         api,
-        chainHistory,
         conversationIdAtStart
       );
     }
 
-    await summarizeChain(chainHistory, conversationIdAtStart, convTitleAtStart);
+    await summarizeChain(conversationIdAtStart, convTitleAtStart);
   } finally {
     if (multiplierBtn) toggleElement(multiplierBtn);
     notifyChainFinished(count, conversationIdAtStart, convTitleAtStart);
@@ -697,37 +692,12 @@ function showToast(message) {
   }, 3000);
 }
 
-async function sendProfileInChain(perfilKey, API, chainHistory, conversationId) {
-  let activePerfiles = null;
-  let activeInstrucciones = null;
-
-  switch (modeValue) {
-    case "Brainstorming":
-      activePerfiles = dialogoPerfiles;
-      activeInstrucciones = dialogosInstrucciones;
-      break;
-    case "Naming":
-      console.warn("Cadena: aún no hay perfiles de Naming");
-      return;
-    case "Socialstorming":
-      activePerfiles = socialPerfiles;
-      activeInstrucciones = socialInstrucciones;
-      break;
-    case "Briefer":
-      console.warn("Cadena: aún no hay perfiles de Briefer");
-      return;
-  }
-
-  const perfil = {
-    role: "system",
-    content: `${activePerfiles[perfilKey].content}\n\n${activeInstrucciones}`,
-  };
-
-  const recordatorio = {
-    role: "user",
-    content:
-      "Es muy importante que tengas en cuenta que voy a querer empear un debate acerca de los temas que proponga a continuación. También recuerda utilizar el formato de salida obligatorio presente en tu perfil (este mensaje solo es un recordatorio y no ha de ser mencionado en el resto de la conversación)",
-  };
+async function sendProfileInChain(
+  perfilKey,
+  API,
+  conversationId
+) {
+  const perfil = getPerfilContent(perfilKey);
 
   const pending = document.createElement("div");
   pending.className = "message pending text-content";
@@ -744,7 +714,7 @@ async function sendProfileInChain(perfilKey, API, chainHistory, conversationId) 
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         perfil,
-        messages: [recordatorio, ...chainHistory],
+        messages: [recordatorio, ...conversationHistory],
       }),
     });
 
@@ -758,11 +728,6 @@ async function sendProfileInChain(perfilKey, API, chainHistory, conversationId) 
     if (!text || !text.trim()) {
       throw new Error("La IA no generó respuesta");
     }
-
-    chainHistory.push({
-      role: "assistant",
-      content: `${perfilKey}-${API}: ${text}`,
-    });
 
     await saveMessage(conversationId, {
       text,
@@ -789,23 +754,13 @@ async function sendProfileInChain(perfilKey, API, chainHistory, conversationId) 
     pending.classList.add("error");
   }
 }
-async function summarizeChain(chainHistory, conversationId, convTitle) {
+async function summarizeChain(conversationId, convTitle) {
   try {
-    const historyForSummary = chainHistory.map((m) => {
-      const content =
-        typeof m === "string" ? m : (m.content || "");
-
-      return {
-        role: "user",         
-        content: content,
-      };
-    });
-
     const res = await fetch(`/api/resumir`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        conversation: historyForSummary,
+        conversation: conversationHistory,
       }),
     });
 
@@ -821,13 +776,13 @@ async function summarizeChain(chainHistory, conversationId, convTitle) {
 
     await saveMessage(conversationId, {
       text,
-      creativeAgent: "openai-summary-chain",
+      creativeAgent: "summary-openai",
     });
 
     if (activeConversationId === conversationId) {
       const replyDiv = renderMessage({
-        author: "openai-summary-chain",
-        text: `<strong>Resumen de la ronda (${convTitle}):</strong><br>${text}`,
+        author: "summary-openai",
+        text: `<strong>Resumen de la ronda ${convTitle}:</strong><br>${text}`,
       });
       addMessageToConversationHistory(replyDiv);
       responseDiv.appendChild(replyDiv);
@@ -844,9 +799,7 @@ function notifyChainFinished(count, conversationId, convTitle) {
   saveMessage(conversationId, {
     text,
     creativeAgent: "system",
-  }).catch((e) =>
-    console.error("Error guardando mensaje de sistema:", e)
-  );
+  }).catch((e) => console.error("Error guardando mensaje de sistema:", e));
 
   if (activeConversationId === conversationId) {
     const systemMsg = renderMessage({
