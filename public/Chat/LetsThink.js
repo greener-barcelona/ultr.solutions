@@ -789,14 +789,14 @@ async function sendProfileInChain(perfilKey, API, conversationId) {
 
     const data = await res.json();
     const text = replaceWeirdChars(data.reply);
-    const cleantext = extractBodyContent(text);
-    console.log("Contenido limpio:", cleantext);
-    if (!cleantext || !cleantext.trim()) {
+    //const cleantext = extractBodyContent(text);
+    console.log("Contenido limpio:", text);
+    if (!text || !text.trim()) {
       throw new Error("La IA no generó respuesta");
     }
 
     await saveMessage(conversationId, {
-      cleantext,
+      text,
       creativeAgent: `${perfilKey}-${API}`,
     });
 
@@ -805,7 +805,7 @@ async function sendProfileInChain(perfilKey, API, conversationId) {
 
       const replyDiv = renderMessage({
         author: `${perfilKey}-${API}`,
-        cleantext,
+        text,
       });
       addMessageToConversationHistory(replyDiv);
       responseDiv.appendChild(replyDiv);
