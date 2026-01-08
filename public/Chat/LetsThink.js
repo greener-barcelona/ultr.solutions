@@ -636,7 +636,8 @@ function getRandomProfileButtons(count) {
 }
 
 async function runProfilesChain(count, multiplierBtn) {
-  userSendMessage();
+  toggleElement(multiplierBtn);
+  await userSendMessage();
 
   if (!textarea) return;
 
@@ -659,7 +660,6 @@ async function runProfilesChain(count, multiplierBtn) {
   const chainHistory = [...conversationHistory];
 
   isChainRunning = true;
-  if (multiplierBtn) toggleElement(multiplierBtn);
 
   try {
     for (const btn of selectedButtons) {
