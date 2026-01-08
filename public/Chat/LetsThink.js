@@ -595,12 +595,12 @@ async function summarizeConversation(conversationId, convTitle) {
     if (data.reply && data.reply.trim() !== "") {
       pending.remove();
 
-      const cleatext = replaceWeirdChars(data.reply);
+      const cleantext = replaceWeirdChars(data.reply);
 
       if (activeConversationId === conversationId) {
         const replyDiv = renderMessage({
           author: "summary-openai",
-          text: `<strong>Resumen de la ronda ${convTitle}:</strong><br>${text}`,
+          text: `<strong>Resumen de la ronda ${convTitle}:</strong><br>${cleantext}`,
         });
         addMessageToConversationHistory(replyDiv);
         responseDiv.appendChild(replyDiv);
@@ -608,7 +608,7 @@ async function summarizeConversation(conversationId, convTitle) {
       }
 
       await saveMessage(activeConversationId, {
-        text: cleatext,
+        text: cleantext,
         creativeAgent: `summary-openai`,
       });
     } else {
@@ -788,44 +788,6 @@ async function sendProfileInChain(perfilKey, API, conversationId) {
     pending.classList.add("error");
   }
 }
-/*async function summarizeChain(conversationId, convTitle) {
-  try {
-    const res = await fetch(`/api/resumir`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        conversation: conversationHistory,
-      }),
-    });
-
-    if (!res.ok) {
-      const errorData = await res.json();
-      throw new Error(errorData.error || "Error al resumir.");
-    }
-
-    const data = await res.json();
-    const text = replaceWeirdChars(data.reply || "");
-
-    if (!text.trim()) return;
-
-    await saveMessage(conversationId, {
-      text,
-      creativeAgent: "summary-openai",
-    });
-
-    if (activeConversationId === conversationId) {
-      const replyDiv = renderMessage({
-        author: "summary-openai",
-        text: `<strong>Resumen de la ronda ${convTitle}:</strong><br>${text}`,
-      });
-      addMessageToConversationHistory(replyDiv);
-      responseDiv.appendChild(replyDiv);
-      responseDiv.scrollTop = responseDiv.scrollHeight;
-    }
-  } catch (err) {
-    console.error("Error generando resumen de la cadena:", err);
-  }
-}*/
 
 function notifyChainFinished(count, conversationId, convTitle) {
   const text = `Han respondido ${count} perfiles en "${convTitle}". Fin de la ronda.`;
