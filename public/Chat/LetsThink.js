@@ -564,24 +564,25 @@ async function summarizeConversationButton(button) {
   const conversationIdAtStart = activeConversationId;
   const convTitleAtStart = title || "esta conversación";
 
-  await summarizeConversation(conversationIdAtStart, convTitleAtStart);
+  await summarizeConversation(conversationIdAtStart, convTitleAtStart, conversationHistory);
 
   toggleElement(button);
 }
 
-async function summarizeConversation(conversationId, convTitle) {
-  const pending = document.createElement("div");
-  pending.className = "message pending text-content";
-  pending.textContent = "Resumiendo...";
-  responseDiv.appendChild(pending);
-  responseDiv.scrollTop = responseDiv.scrollHeight;
-
+async function summarizeConversation(conversationId, convTitle, history) {
+  if (activeConversationId === conversationId) {
+    const pending = document.createElement("div");
+    pending.className = "message pending text-content";
+    pending.textContent = "Resumiendo...";
+    responseDiv.appendChild(pending);
+    responseDiv.scrollTop = responseDiv.scrollHeight;
+  }
   try {
     const res = await fetch(`/api/resumir`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        conversation: conversationHistory,
+        conversation: history,
       }),
     });
 
@@ -668,7 +669,7 @@ async function runProfilesChain(count, multiplierBtn) {
 
   const conversationIdAtStart = activeConversationId;
   const convTitleAtStart = title || "esta conversación";
-
+  const historyAtStart = conversationHistory;
   isChainRunning = true;
 
   try {
@@ -679,7 +680,7 @@ async function runProfilesChain(count, multiplierBtn) {
       await sendProfileInChain(perfilKey, api, conversationIdAtStart);
     }
 
-    if(activeConversationId === conversationIdAtStart) await summarizeConversation(conversationIdAtStart, convTitleAtStart);
+    await summarizeConversation(conversationIdAtStart, convTitleAtStart, historyAtStart);
   } finally {
     if (multiplierBtn) toggleElement(multiplierBtn);
     notifyChainFinished(count, conversationIdAtStart, convTitleAtStart);
