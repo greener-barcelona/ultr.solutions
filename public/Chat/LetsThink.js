@@ -411,6 +411,21 @@ function replaceWeirdChars(text) {
   return hashtagFreeText;
 }
 
+function extractBodyContent(html) {
+  const isFullHTML =
+    /<!doctype html>/i.test(html) ||
+    (/<html[\s>]/i.test(html) && /<body[\s>]/i.test(html));
+
+  if (!isFullHTML) {
+    return html;
+  }
+
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, "text/html");
+
+  return doc.body ? doc.body.innerHTML : html;
+}
+
 function toggleElement(element) {
   element.disabled = !element.disabled;
 }
@@ -692,7 +707,9 @@ async function runProfilesChain(count, multiplierBtn) {
     );
   } finally {
     if (multiplierBtn) toggleElement(multiplierBtn);
-    notifyChainFinished(count, conversationIdAtStart, convTitleAtStart);
+    const text = `Han respondido ${count} perfiles en "${convTitleAtStart}". Fin de la ronda.`;
+    //notifyChainFinished(count, conversationIdAtStart, convTitleAtStart);
+    showToastSticky(text);
     isChainRunning = false;
   }
 }
@@ -769,12 +786,13 @@ async function sendProfileInChain(perfilKey, API, conversationId) {
 
     const data = await res.json();
     const text = replaceWeirdChars(data.reply);
-    if (!text || !text.trim()) {
+    const cleantext = extractBodyContent(text);
+    if (!cleantext || !cleantext.trim()) {
       throw new Error("La IA no generó respuesta");
     }
 
     await saveMessage(conversationId, {
-      text,
+      cleantext,
       creativeAgent: `${perfilKey}-${API}`,
     });
 
@@ -783,7 +801,7 @@ async function sendProfileInChain(perfilKey, API, conversationId) {
 
       const replyDiv = renderMessage({
         author: `${perfilKey}-${API}`,
-        text,
+        cleantext,
       });
       addMessageToConversationHistory(replyDiv);
       responseDiv.appendChild(replyDiv);
@@ -799,10 +817,10 @@ async function sendProfileInChain(perfilKey, API, conversationId) {
   }
 }
 
-function notifyChainFinished(count, conversationId, convTitle) {
+/*function notifyChainFinished(count, conversationId, convTitle) {
   const text = `Han respondido ${count} perfiles en "${convTitle}". Fin de la ronda.`;
 
-  /*if (activeConversationId === conversationId) {
+  if (activeConversationId === conversationId) {
     const systemMsg = renderMessage({
       author: "system",
       text,
@@ -811,10 +829,10 @@ function notifyChainFinished(count, conversationId, convTitle) {
     addMessageToConversationHistory(systemMsg);
     responseDiv.appendChild(systemMsg);
     responseDiv.scrollTop = responseDiv.scrollHeight;
-  }*/
+  }
 
   showToastSticky(text);
-}
+}*/
 
 //Inicialización
 
