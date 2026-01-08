@@ -564,16 +564,21 @@ async function summarizeConversationButton(button) {
   const conversationIdAtStart = activeConversationId;
   const convTitleAtStart = title || "esta conversación";
 
-  await summarizeConversation(conversationIdAtStart, convTitleAtStart, conversationHistory);
+  await summarizeConversation(
+    conversationIdAtStart,
+    convTitleAtStart,
+    conversationHistory
+  );
 
   toggleElement(button);
 }
 
 async function summarizeConversation(conversationId, convTitle, history) {
+  console.log("Actual: ", activeConversationId, "Entrante: ", conversationId);
+  const pending = document.createElement("div");
+  pending.className = "message pending text-content";
+  pending.textContent = "Resumiendo...";
   if (activeConversationId === conversationId) {
-    const pending = document.createElement("div");
-    pending.className = "message pending text-content";
-    pending.textContent = "Resumiendo...";
     responseDiv.appendChild(pending);
     responseDiv.scrollTop = responseDiv.scrollHeight;
   }
@@ -592,11 +597,17 @@ async function summarizeConversation(conversationId, convTitle, history) {
     }
 
     const data = await res.json();
+    pending.remove();
 
     if (data.reply && data.reply.trim() !== "") {
-      pending.remove();
-
       const cleantext = replaceWeirdChars(data.reply);
+
+      console.log(
+        "Actual: ",
+        activeConversationId,
+        "Entrante: ",
+        conversationId
+      );
 
       if (activeConversationId === conversationId) {
         const replyDiv = renderMessage({
@@ -680,7 +691,11 @@ async function runProfilesChain(count, multiplierBtn) {
       await sendProfileInChain(perfilKey, api, conversationIdAtStart);
     }
 
-    await summarizeConversation(conversationIdAtStart, convTitleAtStart, historyAtStart);
+    await summarizeConversation(
+      conversationIdAtStart,
+      convTitleAtStart,
+      historyAtStart
+    );
   } finally {
     if (multiplierBtn) toggleElement(multiplierBtn);
     notifyChainFinished(count, conversationIdAtStart, convTitleAtStart);
