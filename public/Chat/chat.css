@@ -731,22 +731,46 @@ body {
 }
 .toast {
   position: fixed;
+  left: 50%;
   bottom: 24px;
-  right: 24px;
+
   background: #2d2d2d;
   color: #fff;
+
   padding: 10px 14px;
   border-radius: 999px;
   font-size: 13px;
+
   opacity: 0;
-  transform: translateY(10px);
+  transform: translate(-50%, 10px);
   transition: opacity 0.2s ease, transform 0.2s ease;
   z-index: 9999;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+
+  max-width: min(92vw, 720px);
+  box-shadow: 0 10px 24px rgba(0,0,0,0.25);
 }
 
 .toast.show {
   opacity: 1;
-  transform: translateY(0);
+  transform: translate(-50%, 0);
+}
+.toast .toast-close {
+  margin-left: 10px;
+  background: transparent;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  opacity: 0.85;
+}
+
+.toast .toast-close:hover {
+  opacity: 1;
 }
 .multiplier-icon:hover {
   color: var(--text-dark);

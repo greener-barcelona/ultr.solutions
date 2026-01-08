@@ -28,6 +28,8 @@ let modeValue = "Brainstorming";
 let title = "";
 let isChainRunning = false;
 const conversationHistory = [];
+let activeToast = null;
+let toastOutsideHandler = null;
 
 const responseDiv = document.getElementById("messages");
 const textarea = document.getElementById("userInputArea");
@@ -677,19 +679,47 @@ async function runProfilesChain(count, multiplierBtn) {
   }
 }
 
-function showToast(message) {
+function showToastSticky(message) {
+  if (activeToast) {
+    activeToast.remove();
+    activeToast = null;
+  }
+  if (toastOutsideHandler) {
+    document.removeEventListener("click", toastOutsideHandler, true);
+    toastOutsideHandler = null;
+  }
+
   const toast = document.createElement("div");
   toast.className = "toast";
-  toast.textContent = message;
+  toast.innerHTML = `
+    <span class="toast-text">${message}</span>
+    <button class="toast-close" aria-label="Cerrar">✕</button>
+  `;
   document.body.appendChild(toast);
 
   void toast.offsetHeight;
   toast.classList.add("show");
 
-  setTimeout(() => {
+  const close = () => {
     toast.classList.remove("show");
     setTimeout(() => toast.remove(), 200);
-  }, 3000);
+    activeToast = null;
+    if (toastOutsideHandler) {
+      document.removeEventListener("click", toastOutsideHandler, true);
+      toastOutsideHandler = null;
+    }
+  };
+
+  toast.querySelector(".toast-close").addEventListener("click", (e) => {
+    e.stopPropagation();
+    close();
+  });
+  toastOutsideHandler = (e) => {
+    if (!toast.contains(e.target)) close();
+  };
+  document.addEventListener("click", toastOutsideHandler, true);
+
+  activeToast = toast;
 }
 
 async function sendProfileInChain(
@@ -812,7 +842,7 @@ function notifyChainFinished(count, conversationId, convTitle) {
     responseDiv.scrollTop = responseDiv.scrollHeight;
   }
 
-  showToast(text);
+  showToastSticky(text);
 }
 
 //Inicialización
