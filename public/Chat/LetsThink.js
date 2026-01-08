@@ -804,7 +804,7 @@ async function sendProfileInChain(perfilKey, API, conversationId) {
 
       const replyDiv = renderMessage({
         author: `${perfilKey}-${API}`,
-        cleantext,
+        text: cleantext,
       });
       addMessageToConversationHistory(replyDiv);
       responseDiv.appendChild(replyDiv);
