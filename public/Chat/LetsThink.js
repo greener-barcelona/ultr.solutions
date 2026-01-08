@@ -420,10 +420,8 @@ function extractBodyContent(html) {
     return html;
   }
 
-  const parser = new DOMParser();
-  const doc = parser.parseFromString(html, "text/html");
-
-  return doc.body ? doc.body.innerHTML : html;
+  const match = html.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+  return match ? match[1] : "";
 }
 
 function toggleElement(element) {
