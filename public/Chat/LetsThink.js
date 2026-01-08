@@ -574,7 +574,6 @@ async function summarizeConversationButton(button) {
 }
 
 async function summarizeConversation(conversationId, convTitle, history) {
-  console.log("Actual: ", activeConversationId, "Entrante: ", conversationId);
   const pending = document.createElement("div");
   pending.className = "message pending text-content";
   pending.textContent = "Resumiendo...";
@@ -602,13 +601,6 @@ async function summarizeConversation(conversationId, convTitle, history) {
     if (data.reply && data.reply.trim() !== "") {
       const cleantext = replaceWeirdChars(data.reply);
 
-      console.log(
-        "Actual: ",
-        activeConversationId,
-        "Entrante: ",
-        conversationId
-      );
-
       if (activeConversationId === conversationId) {
         const replyDiv = renderMessage({
           author: "summary-openai",
@@ -619,14 +611,16 @@ async function summarizeConversation(conversationId, convTitle, history) {
         responseDiv.scrollTop = responseDiv.scrollHeight;
       }
 
-      await saveMessage(activeConversationId, {
+      await saveMessage(conversationId, {
         text: cleantext,
         creativeAgent: `summary-openai`,
       });
     } else {
-      pending.textContent = "La IA no generó respuesta";
-      pending.classList.remove("pending");
-      pending.classList.add("error");
+      if (activeConversationId === conversationId) {
+        pending.textContent = "La IA no generó respuesta";
+        pending.classList.remove("pending");
+        pending.classList.add("error");
+      }
     }
   } catch (error) {
     console.error("Error completo:", error);
@@ -808,7 +802,7 @@ async function sendProfileInChain(perfilKey, API, conversationId) {
 function notifyChainFinished(count, conversationId, convTitle) {
   const text = `Han respondido ${count} perfiles en "${convTitle}". Fin de la ronda.`;
 
-  if (activeConversationId === conversationId) {
+  /*if (activeConversationId === conversationId) {
     const systemMsg = renderMessage({
       author: "system",
       text,
@@ -817,7 +811,7 @@ function notifyChainFinished(count, conversationId, convTitle) {
     addMessageToConversationHistory(systemMsg);
     responseDiv.appendChild(systemMsg);
     responseDiv.scrollTop = responseDiv.scrollHeight;
-  }
+  }*/
 
   showToastSticky(text);
 }
