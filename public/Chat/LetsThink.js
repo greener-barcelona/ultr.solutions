@@ -795,7 +795,7 @@ async function sendProfileInChain(perfilKey, API, conversationId) {
     }
 
     await saveMessage(conversationId, {
-      cleantext,
+      text: cleantext,
       creativeAgent: `${perfilKey}-${API}`,
     });
 
