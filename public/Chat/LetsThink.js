@@ -790,6 +790,7 @@ async function sendProfileInChain(perfilKey, API, conversationId) {
     const data = await res.json();
     const text = replaceWeirdChars(data.reply);
     const cleantext = extractBodyContent(text);
+    console.log("Contenido limpio:", cleantext);
     if (!cleantext || !cleantext.trim()) {
       throw new Error("La IA no generó respuesta");
     }
