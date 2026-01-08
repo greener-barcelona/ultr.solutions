@@ -792,12 +792,7 @@ async function sendProfileInChain(perfilKey, API, conversationId) {
 function notifyChainFinished(count, conversationId, convTitle) {
   const text = `Han respondido ${count} perfiles en "${convTitle}". Fin de la ronda.`;
 
-  saveMessage(conversationId, {
-    text,
-    creativeAgent: "system",
-  }).catch((e) => console.error("Error guardando mensaje de sistema:", e));
-
-  if (activeConversationId === conversationId) {
+  /*if (activeConversationId === conversationId) {
     const systemMsg = renderMessage({
       author: "system",
       text,
@@ -806,7 +801,7 @@ function notifyChainFinished(count, conversationId, convTitle) {
     addMessageToConversationHistory(systemMsg);
     responseDiv.appendChild(systemMsg);
     responseDiv.scrollTop = responseDiv.scrollHeight;
-  }
+  }*/
 
   showToastSticky(text);
 }
