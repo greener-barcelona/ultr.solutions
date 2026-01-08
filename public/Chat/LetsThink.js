@@ -412,15 +412,20 @@ function replaceWeirdChars(text) {
 }
 
 function extractBodyContent(html) {
+  console.log(html);
+
   const isFullHTML =
     /<!doctype html>/i.test(html) ||
     (/<html[\s>]/i.test(html) && /<body[\s>]/i.test(html));
+
+  console.log(isFullHTML);
 
   if (!isFullHTML) {
     return html;
   }
 
   const match = html.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+  console.log(match);
   return match ? match[1] : "";
 }
 
