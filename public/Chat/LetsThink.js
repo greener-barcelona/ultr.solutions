@@ -412,8 +412,6 @@ function replaceWeirdChars(text) {
 }
 
 function extractBodyContent(html) {
-  console.log(html);
-
   const isFullHTML =
     /<!doctype html>/i.test(html) ||
     (/<html[\s>]/i.test(html) && /<body[\s>]/i.test(html));
@@ -792,12 +790,12 @@ async function sendProfileInChain(perfilKey, API, conversationId) {
     const cleantext = extractBodyContent(text);
     console.log("Contenido normal:", text);
     console.log("Contenido limpio:", cleantext);
-    if (!text || !text.trim()) {
+    if (!cleantext || !cleantext.trim()) {
       throw new Error("La IA no generó respuesta");
     }
 
     await saveMessage(conversationId, {
-      text,
+      cleantext,
       creativeAgent: `${perfilKey}-${API}`,
     });
 
@@ -806,7 +804,7 @@ async function sendProfileInChain(perfilKey, API, conversationId) {
 
       const replyDiv = renderMessage({
         author: `${perfilKey}-${API}`,
-        text,
+        cleantext,
       });
       addMessageToConversationHistory(replyDiv);
       responseDiv.appendChild(replyDiv);
