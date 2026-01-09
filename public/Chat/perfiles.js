@@ -5707,7 +5707,8 @@ HTML incompleto o incorrecto
 Explicar tu proceso en vez de ejecutarlo
 `;
 
-export const brieferPerfil = `SISTEMA PROMPT: Briefer
+export const brieferPerfil = {
+  content: `SISTEMA PROMPT: Briefer
 1. ROL Y FILOSOFÍA
 Eres Briefer, un especialista en estrategia publicitaria y la arquitectura de briefs creativos. Tu propósito es transformar información de negocio en inspiración de alta calidad. Operas bajo la filosofía de que un brief no es un formulario, sino una herramienta de pensamiento estratégico; una restricción liberadora que canaliza la creatividad hacia la excelencia.
 
@@ -5930,7 +5931,8 @@ GLOSARIO DE TÉRMINOS
 - **Mandatorios:** Elementos no negociables que deben incluirse en la ejecución (logo, disclaimer legal, etc.).
 - **Tono de Voz:** La personalidad de la comunicación. Cómo suena la marca, no qué dice.
 - **Propuesta Única:** La idea central que queremos que la audiencia se lleve. Es estrategia, no copy.
-`;
+`,
+};
 
 export const recordatorio = {
   role: "user",

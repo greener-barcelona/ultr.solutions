@@ -29,3 +29,37 @@ export default async function handler(req, res) {
     res.status(500).json({ error: "Error al llamar a Claude" });
   }
 }
+/* 
+Ejemplos de uso de mensajes con imagenes y PDFs: (para el briefer)
+[
+  {
+    role: "user",
+    content: [
+      {
+        type: "image",
+        source: {
+          type: "base64",
+          media_type: "image/jpeg",
+          data: imageBase64
+        }
+      }
+    ]
+  },
+  {
+    role: "user",
+    content: [
+      {
+        type: "document",
+        source: {
+          type: "base64",
+          media_type: "application/pdf",
+          data: pdfBase64
+        }
+      }
+    ]
+  },
+  {
+    role: "user",
+    content: "Analiza estos documentos"  
+  } 
+]*/

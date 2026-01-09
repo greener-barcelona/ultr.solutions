@@ -419,7 +419,7 @@ async function extractPDFText(file) {
     const pageText = textContent.items.map((item) => item.str).join(" ");
     fullText += pageText + "\n\n";
   }
-  return fullText;
+  return fullText.trim();
 }
 
 //Auxiliares
@@ -758,7 +758,6 @@ async function runProfilesChain(count, multiplierBtn) {
   } finally {
     if (multiplierBtn) toggleElement(multiplierBtn);
     const text = `Han respondido ${count} perfiles en "${convTitleAtStart}". Fin de la ronda.`;
-    //notifyChainFinished(count, conversationIdAtStart, convTitleAtStart);
     showToastSticky(text);
     isChainRunning = false;
   }
@@ -975,6 +974,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   modeSelector.addEventListener("change", (e) => {
     const value = e.target.value;
+    if (value === "Briefer") window.location.href = "../Briefer/";
     modeValue = value;
     titleText.text = value;
   });
