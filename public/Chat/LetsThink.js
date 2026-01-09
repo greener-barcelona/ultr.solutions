@@ -224,13 +224,14 @@ function addMessageToConversationHistory(message) {
   console.log(conversationHistory);
 }
 
-//Mensajes
 async function refreshCachedConversations() {
   cachedConversations = await getAllConversations();
   for (const conv of cachedConversations) {
     conv._messages = await getConversationMessages(conv.id);
   }
 }
+
+//Mensajes
 
 async function userSendMessage() {
   if (!textarea || !responseDiv) return null;
@@ -460,28 +461,46 @@ function getPerfilContent(perfilKey) {
   };
 }
 
-//Endpoints
+async function summarizeConversationButton(button) {
+  toggleElement(button);
+  await userSendMessage();
 
-async function sendMessageToAPI(perfilKey, API, triggerBtn) {
+  const conversationIdAtStart = activeConversationId;
+  const convTitleAtStart = title || "esta conversación";
+
+  await summarizeConversation(
+    conversationIdAtStart,
+    convTitleAtStart,
+    conversationHistory
+  );
+
+  toggleElement(button);
+}
+
+async function sendMessageToProfileButton(perfilKey, API, triggerBtn) {
   toggleElement(triggerBtn);
   await userSendMessage();
 
-  if (conversationHistory.length === 0) {
-    return alert("No hay mensajes para enviar.");
-  }
+  const conversationIdAtStart = activeConversationId;
 
+  await sendMessageToProfile(perfilKey, API, conversationIdAtStart);
+
+  toggleElement(triggerBtn);
+}
+
+//Endpoints
+
+async function sendMessageToProfile(perfilKey, API, conversationId) {
   const perfil = getPerfilContent(perfilKey);
-
-  if (!perfil) {
-    toggleElement(triggerBtn);
-    return alert("Perfil no exstente.");
-  }
 
   const pending = document.createElement("div");
   pending.className = "message pending text-content";
-  pending.textContent = "Enviando...";
-  responseDiv.appendChild(pending);
-  responseDiv.scrollTop = responseDiv.scrollHeight;
+  pending.textContent = `Enviando (${perfilKey})...`;
+
+  if (activeConversationId === conversationId) {
+    responseDiv.appendChild(pending);
+    responseDiv.scrollTop = responseDiv.scrollHeight;
+  }
 
   try {
     const res = await fetch(`/api/${API}`, {
@@ -500,33 +519,36 @@ async function sendMessageToAPI(perfilKey, API, triggerBtn) {
 
     const data = await res.json();
     const text = replaceWeirdChars(data.reply);
+    const cleanhtml = extractBodyContent(text);
+    console.log("Contenido normal:", text);
+    console.log("Contenido limpio:", cleanhtml);
+    if (!cleanhtml || !cleanhtml.trim()) {
+      throw new Error("La IA no generó respuesta");
+    }
 
-    if (text && text.trim() !== "") {
-      pending.remove();
+    await saveMessage(conversationId, {
+      text: cleanhtml,
+      creativeAgent: `${perfilKey}-${API}`,
+    });
 
+    pending.remove();
+
+    if (activeConversationId === conversationId) {
       const replyDiv = renderMessage({
         author: `${perfilKey}-${API}`,
-        text: text,
+        text: cleanhtml,
       });
       addMessageToConversationHistory(replyDiv);
       responseDiv.appendChild(replyDiv);
-
-      await saveMessage(activeConversationId, {
-        text: text,
-        creativeAgent: `${perfilKey}-${API}`,
-      });
+      responseDiv.scrollTop = responseDiv.scrollHeight;
     } else {
-      pending.textContent = "La IA no generó respuesta";
-      pending.classList.remove("pending");
-      pending.classList.add("error");
+      pending.remove();
     }
-  } catch (error) {
-    console.error("Error completo:", error);
-    pending.textContent = `Error: ${error.message}`;
+  } catch (err) {
+    console.error(err);
+    pending.textContent = `Error: ${err.message}`;
     pending.classList.remove("pending");
     pending.classList.add("error");
-  } finally {
-    toggleElement(triggerBtn);
   }
 }
 
@@ -573,20 +595,6 @@ async function exportConversation(button, summarize) {
   } finally {
     toggleElement(button);
   }
-}
-
-async function summarizeConversationButton(button) {
-  toggleElement(button);
-  const conversationIdAtStart = activeConversationId;
-  const convTitleAtStart = title || "esta conversación";
-
-  await summarizeConversation(
-    conversationIdAtStart,
-    convTitleAtStart,
-    conversationHistory
-  );
-
-  toggleElement(button);
 }
 
 async function summarizeConversation(conversationId, convTitle, history) {
@@ -698,7 +706,7 @@ async function runProfilesChain(count, multiplierBtn) {
       const perfilKey = btn.dataset.perfil;
       const api = btn.dataset.api;
 
-      await sendProfileInChain(perfilKey, api, conversationIdAtStart);
+      await sendMessageToProfile(perfilKey, api, conversationIdAtStart);
     }
 
     await summarizeConversation(
@@ -758,88 +766,18 @@ function showToastSticky(message) {
   activeToast = toast;
 }
 
-async function sendProfileInChain(perfilKey, API, conversationId) {
-  const perfil = getPerfilContent(perfilKey);
-
-  const pending = document.createElement("div");
-  pending.className = "message pending text-content";
-  pending.textContent = `Enviando (${perfilKey})...`;
-
-  if (activeConversationId === conversationId) {
-    responseDiv.appendChild(pending);
-    responseDiv.scrollTop = responseDiv.scrollHeight;
-  }
-
-  try {
-    const res = await fetch(`/api/${API}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        perfil,
-        messages: [recordatorio, ...conversationHistory],
-      }),
-    });
-
-    if (!res.ok) {
-      const errorData = await res.json();
-      throw new Error(errorData.error || "Error al enviar.");
-    }
-
-    const data = await res.json();
-    const text = replaceWeirdChars(data.reply);
-    const cleantext = extractBodyContent(text);
-    console.log("Contenido normal:", text);
-    console.log("Contenido limpio:", cleantext);
-    if (!cleantext || !cleantext.trim()) {
-      throw new Error("La IA no generó respuesta");
-    }
-
-    await saveMessage(conversationId, {
-      text: cleantext,
-      creativeAgent: `${perfilKey}-${API}`,
-    });
-
-    if (activeConversationId === conversationId) {
-      pending.remove();
-
-      const replyDiv = renderMessage({
-        author: `${perfilKey}-${API}`,
-        text: cleantext,
-      });
-      addMessageToConversationHistory(replyDiv);
-      responseDiv.appendChild(replyDiv);
-      responseDiv.scrollTop = responseDiv.scrollHeight;
-    } else {
-      pending.remove();
-    }
-  } catch (err) {
-    console.error(err);
-    pending.textContent = `Error: ${err.message}`;
-    pending.classList.remove("pending");
-    pending.classList.add("error");
-  }
-}
-
-/*function notifyChainFinished(count, conversationId, convTitle) {
-  const text = `Han respondido ${count} perfiles en "${convTitle}". Fin de la ronda.`;
-
-  if (activeConversationId === conversationId) {
-    const systemMsg = renderMessage({
-      author: "system",
-      text,
-      userProfile: null,
-    });
-    addMessageToConversationHistory(systemMsg);
-    responseDiv.appendChild(systemMsg);
-    responseDiv.scrollTop = responseDiv.scrollHeight;
-  }
-
-  showToastSticky(text);
-}*/
-
 //Inicialización
 
 document.addEventListener("DOMContentLoaded", async () => {
+  const {
+    data: { session },
+  } = await sb.auth.getSession();
+
+  if (!session) {
+    window.location.href = "../LogIn/";
+    return;
+  }
+
   const searchBtn = document.getElementById("searchChatBtn");
   const searchModal = document.getElementById("searchModal");
   const searchInput = document.getElementById("searchInput");
@@ -907,15 +845,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     searchInput.focus();
   });
 
-  /* if (!cachedConversations) {
-    cachedConversations = await getAllConversations();
-    for (const conv of cachedConversations) {
-      conv._messages = await getConversationMessages(conv.id);
-    }
-  }*/
-
-  await refreshCachedConversations();
-
   closeSearchBtn.addEventListener("click", () => {
     searchModal.classList.remove("active");
   });
@@ -977,7 +906,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const profileButtons = document.querySelectorAll("button[data-api]");
   profileButtons.forEach((btn) =>
     btn.addEventListener("click", () =>
-      sendMessageToAPI(btn.dataset.perfil, btn.dataset.api, btn)
+      sendMessageToProfileButton(btn.dataset.perfil, btn.dataset.api, btn)
     )
   );
 
@@ -1020,12 +949,5 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   });
 
-  const {
-    data: { session },
-  } = await sb.auth.getSession();
-
-  if (!session) {
-    window.location.href = "../LogIn/";
-    return;
-  }
+  await refreshCachedConversations();
 });
