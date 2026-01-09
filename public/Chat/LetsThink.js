@@ -267,6 +267,11 @@ async function userSendMessage() {
   if (title === "Nueva conversación") {
     title = text.length > 40 ? text.slice(0, 40) + "..." : text;
     await renameConversation(activeConversationId, title);
+    cachedConversations = cachedConversations.map((conversation) =>
+      conversation.id === activeConversationId.id
+        ? { ...conversation, title: title }
+        : conversation
+    );
     await loadSidebarConversations();
   }
 
@@ -283,7 +288,10 @@ async function userSendMessage() {
   textarea.value = "";
   cachedConversations = cachedConversations.map((conversation) =>
     conversation.id === activeConversationId
-      ? { ...conversation, _messages: [...conversation._messages, uiMessage] }
+      ? {
+          ...conversation,
+          _messages: [...conversation._messages, uiMessage.textContent.trim()],
+        }
       : conversation
   );
   await saveMessage(activeConversationId, { text: text });
