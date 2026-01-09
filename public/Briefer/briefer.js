@@ -282,7 +282,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const logoutBtn = document.getElementById("logoutBtn");
   const newChatBtn = document.getElementById("newChatBtn");
 
-  const modeSelector = document.getElementById("selector");
+  const modeSelector = document.getElementById("modeSelector");
 
   // sesión supabase
   const { data: { session } } = await sb.auth.getSession();
