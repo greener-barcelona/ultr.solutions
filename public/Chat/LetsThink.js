@@ -21,18 +21,20 @@ import {
 pdfjsLib.GlobalWorkerOptions.workerSrc =
   "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.2.67/pdf.worker.min.mjs";
 
-let activeConversationId = null;
 let cachedConversations = null;
 
 let modeValue = "Brainstorming";
 let title = "";
+
 let isChainRunning = false;
-const conversationHistory = [];
 let activeToast = null;
 let toastOutsideHandler = null;
 
 const responseDiv = document.getElementById("messages");
 const textarea = document.getElementById("userInputArea");
+
+const conversationHistory = [];
+let activeConversationId = null;
 
 //Sesión
 
@@ -56,6 +58,8 @@ async function startNewConversation() {
 
   if (newConv) {
     activeConversationId = newConv.id;
+    cachedConversations.push(newConv);
+    cachedConversations[cachedConversations.length - 1]._messages = [];
   }
   await loadSidebarConversations();
 }
@@ -236,6 +240,7 @@ async function refreshCachedConversations() {
   cachedConversations = await getAllConversations();
   for (const conv of cachedConversations) {
     conv._messages = await getConversationMessages(conv.id);
+    conv._messages = conv._messages.map((msg) => msg.text);
   }
 }
 
@@ -254,6 +259,7 @@ async function userSendMessage() {
     if (newConv) {
       activeConversationId = newConv.id;
       cachedConversations.push(newConv);
+      cachedConversations[cachedConversations.length - 1]._messages = [];
       await loadSidebarConversations();
     }
   }
@@ -275,6 +281,11 @@ async function userSendMessage() {
 
   addMessageToConversationHistory(uiMessage);
   textarea.value = "";
+  cachedConversations = cachedConversations.map((conversation) =>
+    conversation.id === activeConversationId
+      ? { ...conversation, _messages: [...conversation._messages, uiMessage] }
+      : conversation
+  );
   await saveMessage(activeConversationId, { text: text });
 }
 
@@ -466,6 +477,8 @@ function getPerfilContent(perfilKey) {
   };
 }
 
+//Botones
+
 async function summarizeConversationButton(button) {
   toggleElement(button);
   await userSendMessage();
@@ -535,6 +548,12 @@ async function sendMessageToProfile(perfilKey, API, conversationId) {
     });
 
     pending.remove();
+
+    cachedConversations = cachedConversations.map((conversation) =>
+      conversation.id === conversationId
+        ? { ...conversation, _messages: [...conversation._messages, cleanhtml] }
+        : conversation
+    );
 
     if (activeConversationId === conversationId) {
       const replyDiv = renderMessage({
@@ -623,11 +642,21 @@ async function summarizeConversation(conversationId, convTitle, history) {
     }
 
     const data = await res.json();
+
     pending.remove();
 
     if (data.reply && data.reply.trim() !== "") {
       const text = replaceWeirdChars(data.reply);
       const cleanhtml = extractBodyContent(text);
+
+      cachedConversations = cachedConversations.map((conversation) =>
+        conversation.id === conversationId
+          ? {
+              ...conversation,
+              _messages: [...conversation._messages, cleanhtml],
+            }
+          : conversation
+      );
 
       if (activeConversationId === conversationId) {
         const replyDiv = renderMessage({
@@ -874,7 +903,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     cachedConversations.forEach((conv) => {
       const titleMatch = conv.title.toLowerCase().includes(query);
       const contentMatch = conv._messages.some((m) =>
-        m.text.toLowerCase().includes(query)
+        m.toLowerCase().includes(query)
       );
 
       if (titleMatch || contentMatch) {
