@@ -118,8 +118,13 @@ function addConversationToSidebar(conv) {
       alert("Error al renombrar");
       return;
     }
-    //await refreshCachedConversations();
-    //Renombrar la conversacion en el cache
+
+    cachedConversations = cachedConversations.map((conversation) =>
+      conversation.id === conv.id
+        ? { ...conversation, title: newTitle.trim() }
+        : conversation
+    );
+
     if (activeConversationId === conv.id) {
       title = newTitle.trim();
     }
@@ -136,8 +141,10 @@ function addConversationToSidebar(conv) {
       alert("Error al eliminar");
       return;
     }
-    //await refreshCachedConversations();
-    //Eliminar conversacion del cache
+
+    cachedConversations = cachedConversations.filter(
+      (conversation) => conversation.id !== conv.id
+    );
     await loadSidebarConversations();
 
     if (activeConversationId === conv.id) {
@@ -246,8 +253,7 @@ async function userSendMessage() {
 
     if (newConv) {
       activeConversationId = newConv.id;
-      //await refreshCachedConversations();
-      //Añadir la nueva conversacion al cache
+      cachedConversations.push(newConv);
       await loadSidebarConversations();
     }
   }
@@ -863,6 +869,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const query = searchInput.value.toLowerCase().trim();
     searchResults.innerHTML = "";
     if (!query || !cachedConversations) return;
+    console.log("Cached conversations loaded:", cachedConversations);
 
     cachedConversations.forEach((conv) => {
       const titleMatch = conv.title.toLowerCase().includes(query);
@@ -948,5 +955,4 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   await refreshCachedConversations();
-  console.log("Cached conversations loaded:", cachedConversations);
 });
