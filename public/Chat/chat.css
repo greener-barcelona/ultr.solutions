@@ -800,3 +800,7 @@ body {
     gap: 8px;
   }
 }
+
+body { animation: pageFadeIn 160ms ease-out both; }
+body.page-leave { opacity: 0; transition: opacity 160ms ease-out; }
+@keyframes pageFadeIn { from {opacity:0} to {opacity:1} }
