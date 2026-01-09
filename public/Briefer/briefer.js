@@ -304,7 +304,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   modeSelector.addEventListener("change", (e) => {
     const value = e.target.value;
     if (value !== "Briefer") {
-      goTo("../Chat");
+      goTo("../Chat/");
     }
   });
 
