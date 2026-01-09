@@ -48,7 +48,6 @@ function logout() {
 //Conversaciones
 
 async function startNewConversation() {
-  cachedConversations = null;
   responseDiv.innerHTML = "";
   conversationHistory.length = 0;
   activeConversationId = null;
@@ -119,7 +118,8 @@ function addConversationToSidebar(conv) {
       alert("Error al renombrar");
       return;
     }
-    await refreshCachedConversations();
+    //await refreshCachedConversations();
+    //Renombrar la conversacion en el cache
     if (activeConversationId === conv.id) {
       title = newTitle.trim();
     }
@@ -136,7 +136,8 @@ function addConversationToSidebar(conv) {
       alert("Error al eliminar");
       return;
     }
-    await refreshCachedConversations();
+    //await refreshCachedConversations();
+    //Eliminar conversacion del cache
     await loadSidebarConversations();
 
     if (activeConversationId === conv.id) {
@@ -245,7 +246,8 @@ async function userSendMessage() {
 
     if (newConv) {
       activeConversationId = newConv.id;
-      await refreshCachedConversations();
+      //await refreshCachedConversations();
+      //Añadir la nueva conversacion al cache
       await loadSidebarConversations();
     }
   }
@@ -417,14 +419,11 @@ function extractBodyContent(html) {
     /<!doctype html>/i.test(html) ||
     (/<html[\s>]/i.test(html) && /<body[\s>]/i.test(html));
 
-  console.log(isFullHTML);
-
   if (!isFullHTML) {
     return html;
   }
 
   const match = html.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
-  console.log(match);
   return match ? match[1] : "";
 }
 
@@ -520,8 +519,6 @@ async function sendMessageToProfile(perfilKey, API, conversationId) {
     const data = await res.json();
     const text = replaceWeirdChars(data.reply);
     const cleanhtml = extractBodyContent(text);
-    console.log("Contenido normal:", text);
-    console.log("Contenido limpio:", cleanhtml);
     if (!cleanhtml || !cleanhtml.trim()) {
       throw new Error("La IA no generó respuesta");
     }
@@ -623,12 +620,13 @@ async function summarizeConversation(conversationId, convTitle, history) {
     pending.remove();
 
     if (data.reply && data.reply.trim() !== "") {
-      const cleantext = replaceWeirdChars(data.reply);
+      const text = replaceWeirdChars(data.reply);
+      const cleanhtml = extractBodyContent(text);
 
       if (activeConversationId === conversationId) {
         const replyDiv = renderMessage({
           author: "summary-openai",
-          text: `<strong>Resumen de la ronda ${convTitle}:</strong><br>${cleantext}`,
+          text: `<strong>Resumen de la ronda ${convTitle}:</strong><br>${cleanhtml}`,
         });
         addMessageToConversationHistory(replyDiv);
         responseDiv.appendChild(replyDiv);
@@ -636,7 +634,7 @@ async function summarizeConversation(conversationId, convTitle, history) {
       }
 
       await saveMessage(conversationId, {
-        text: cleantext,
+        text: cleanhtml,
         creativeAgent: `summary-openai`,
       });
     } else {
@@ -950,4 +948,5 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   await refreshCachedConversations();
+  console.log("Cached conversations loaded:", cachedConversations);
 });
