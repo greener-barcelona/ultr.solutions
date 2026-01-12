@@ -392,7 +392,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     window.location.href = "../LogIn/";
     return;
   }
-
+  responseDiv = document.getElementById("messages");
+  textarea = document.getElementById("userInputArea");
+  
   const searchBtn = document.getElementById("searchChatBtn");
   const searchModal = document.getElementById("searchModal");
   const searchInput = document.getElementById("searchInput");
@@ -452,9 +454,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   await ensureAppUser();
   await loadSidebarConversations();
-
-  responseDiv = document.getElementById("messages");
-  textarea = document.getElementById("userInputArea");
 
   searchBtn.addEventListener("click", () => {
     searchModal.classList.add("active");

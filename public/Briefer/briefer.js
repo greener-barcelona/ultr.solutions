@@ -1,10 +1,12 @@
-import {
-  sb,
-  ensureAppUser,
-} from "../Common/db.js";
+import { sb, ensureAppUser, saveMessage } from "../Common/db.js";
 import {
   modeValue,
   conversationHistory,
+  cachedConversations,
+  title,
+  activeConversationId,
+  responseDiv,
+  textarea,
   user,
   logout,
   startNewConversation,
@@ -20,13 +22,11 @@ import {
   toggleElement,
   autoResizeTextarea,
 } from "../Common/LetsThink.js";
+import { brieferPerfil } from "../Common/perfiles.js";
 
 let activeConversationId = null;
 let cachedConversations = null;
 let title = "Nueva conversación";
-
-const responseDiv = document.getElementById("messages");
-const textarea = document.getElementById("userInputArea");
 
 function goTo(url) {
   // guarda selección actual
@@ -53,12 +53,14 @@ function closeSearchModal() {
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
+  responseDiv = document.getElementById("messages");
+  textarea = document.getElementById("userInputArea");
+
   const searchBtn = document.getElementById("searchChatBtn");
   const searchModal = document.getElementById("searchModal");
   const searchInput = document.getElementById("searchInput");
   const searchResults = document.getElementById("searchResults");
   const closeSearchBtn = document.getElementById("closeSearchBtn");
-
   const settingsBtn = document.getElementById("settingsBtn");
   const settingsMenu = document.getElementById("settingsMenu");
   const logoutBtn = document.getElementById("logoutBtn");
