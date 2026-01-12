@@ -13,15 +13,25 @@ import {
 pdfjsLib.GlobalWorkerOptions.workerSrc =
   "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.2.67/pdf.worker.min.mjs";
 
-export let modeValue = "Brainstorming";
+let cachedConversations = null;
+
 export const conversationHistory = [];
-export let cachedConversations = null;
-export let title = "";
+export let modeValue = "Brainstorming";
 export let activeConversationId = null;
+export let title = "";
 
-export let responseDiv = null;
-export let textarea = null;
+export let responseDiv;
+export let textarea;
 
+export function assignModeValue(value) {
+  modeValue = value;
+}
+export function assignResponseDiv(value) {
+  responseDiv = value;
+}
+export function assignTextarea(value) {
+  textarea = value;
+}
 //Sesión
 
 export const user = getLocalSession();

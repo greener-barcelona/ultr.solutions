@@ -7,6 +7,9 @@ import {
   activeConversationId,
   responseDiv,
   textarea,
+  assignModeValue,
+  assignTextarea,
+  assignResponseDiv,
   user,
   logout,
   startNewConversation,
@@ -33,6 +36,8 @@ import {
 let isChainRunning = false;
 let activeToast = null;
 let toastOutsideHandler = null;
+
+let cachedConversations = null;
 
 //Auxiliares
 
@@ -392,9 +397,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     window.location.href = "../LogIn/";
     return;
   }
-  responseDiv = document.getElementById("messages");
-  textarea = document.getElementById("userInputArea");
-  
+  assignResponseDiv(document.getElementById("messages"));
+  assignTextarea(document.getElementById("userInputArea"));
+
   const searchBtn = document.getElementById("searchChatBtn");
   const searchModal = document.getElementById("searchModal");
   const searchInput = document.getElementById("searchInput");
@@ -552,7 +557,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   modeSelector.addEventListener("change", (e) => {
     const value = e.target.value;
     if (value === "Briefer") window.location.href = "../Briefer/";
-    modeValue = value;
+    assignModeValue(value);
     titleText.text = value;
   });
   document.addEventListener("click", (e) => {
