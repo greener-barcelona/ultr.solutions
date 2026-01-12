@@ -1,3 +1,5 @@
+// briefer.js
+
 import { sb, ensureAppUser } from "../Common/db.js";
 import {
   user,
@@ -8,12 +10,11 @@ import {
   refreshCachedConversations,
   userSendMessage,
   autoResizeTextarea,
+  assignResponseDiv,
+  assignTextarea,
 } from "../Common/LetsThink.js";
-import { brieferPerfil } from "../Common/perfiles.js"; // 
 
 let cachedConversations = null;
-let responseDiv = null;
-let textarea = null;
 
 function goTo(url) {
   const selector = document.getElementById("modeSelector");
@@ -28,6 +29,8 @@ function openSearchModal() {
   const searchInput = document.getElementById("searchInput");
   const searchResults = document.getElementById("searchResults");
 
+  if (!searchModal || !searchInput || !searchResults) return;
+
   searchModal.classList.add("active");
   searchInput.value = "";
   searchResults.innerHTML = "";
@@ -35,12 +38,13 @@ function openSearchModal() {
 }
 
 function closeSearchModal() {
-  document.getElementById("searchModal").classList.remove("active");
+  const searchModal = document.getElementById("searchModal");
+  if (searchModal) searchModal.classList.remove("active");
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
-  responseDiv = document.getElementById("messages");
-  textarea = document.getElementById("userInputArea");
+  assignResponseDiv(document.getElementById("messages"));
+  assignTextarea(document.getElementById("userInputArea"));
 
   const searchBtn = document.getElementById("searchChatBtn");
   const searchModal = document.getElementById("searchModal");
@@ -52,6 +56,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const logoutBtn = document.getElementById("logoutBtn");
   const newChatBtn = document.getElementById("newChatBtn");
   const modeSelector = document.getElementById("modeSelector");
+  const textarea = document.getElementById("userInputArea");
 
   // sesión supabase
   const {
@@ -64,89 +69,99 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   await ensureAppUser();
+  const refreshed = await refreshCachedConversations();
+  if (Array.isArray(refreshed)) cachedConversations = refreshed;
 
-  // IMPORTANT: necesitamos el array para el buscador
-  cachedConversations = await refreshCachedConversations();
   await loadSidebarConversations();
 
   // mantener selector
   const saved = sessionStorage.getItem("ultra_mode");
-  if (saved) modeSelector.value = saved;
-  modeSelector.value = "Briefer";
+  if (saved && modeSelector) modeSelector.value = saved;
+  if (modeSelector) modeSelector.value = "Briefer";
 
   // sale del briefer
-  modeSelector.addEventListener("change", (e) => {
-    const value = e.target.value;
-    if (value !== "Briefer") goTo("../Chat/");
-  });
+  if (modeSelector) {
+    modeSelector.addEventListener("change", (e) => {
+      const value = e.target.value;
+      if (value !== "Briefer") goTo("../Chat/");
+    });
+  }
 
   // buscador
-  searchBtn.addEventListener("click", openSearchModal);
-  closeSearchBtn.addEventListener("click", closeSearchModal);
+  if (searchBtn) searchBtn.addEventListener("click", openSearchModal);
+  if (closeSearchBtn) closeSearchBtn.addEventListener("click", closeSearchModal);
 
-  searchModal.addEventListener("click", (e) => {
-    if (e.target === searchModal) closeSearchModal();
-  });
+  if (searchModal) {
+    searchModal.addEventListener("click", (e) => {
+      if (e.target === searchModal) closeSearchModal();
+    });
+  }
 
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") closeSearchModal();
   });
 
-  searchInput.addEventListener("input", () => {
-    const query = searchInput.value.toLowerCase().trim();
-    searchResults.innerHTML = "";
-    if (!query || !cachedConversations) return;
+  if (searchInput && searchResults) {
+    searchInput.addEventListener("input", () => {
+      const query = searchInput.value.toLowerCase().trim();
+      searchResults.innerHTML = "";
+      if (!query || !Array.isArray(cachedConversations)) return;
 
-    cachedConversations.forEach((conv) => {
-      const titleMatch = (conv.title || "").toLowerCase().includes(query);
+      cachedConversations.forEach((conv) => {
+        const titleText = (conv.title || "").toLowerCase();
+        const titleMatch = titleText.includes(query);
 
-      // soporta ambos formatos: string o {text: "..."}
-      const msgs = conv._messages || [];
-      const contentMatch = msgs.some((m) => {
-        const text = typeof m === "string" ? m : m?.text || "";
-        return text.toLowerCase().includes(query);
+        const msgs = conv._messages || [];
+        const contentMatch = msgs.some((m) => {
+          const text = typeof m === "string" ? m : m?.text || "";
+          return text.toLowerCase().includes(query);
+        });
+
+        if (titleMatch || contentMatch) {
+          const div = document.createElement("div");
+          div.className = "search-result-item";
+          div.innerHTML = `<div class="search-result-title">${conv.title || ""}</div>`;
+          div.onclick = () => {
+            closeSearchModal();
+            loadConversation(conv.id);
+          };
+          searchResults.appendChild(div);
+        }
       });
-
-      if (titleMatch || contentMatch) {
-        const div = document.createElement("div");
-        div.className = "search-result-item";
-        div.innerHTML = `<div class="search-result-title">${conv.title || ""}</div>`;
-        div.onclick = () => {
-          closeSearchModal();
-          loadConversation(conv.id);
-        };
-        searchResults.appendChild(div);
-      }
     });
-  });
+  }
 
   // input chat
-  textarea.addEventListener("keydown", async (e) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      await userSendMessage();
-    }
-  });
-  textarea.addEventListener("input", autoResizeTextarea);
-
-  newChatBtn.addEventListener("click", startNewConversation);
-  logoutBtn.addEventListener("click", logout);
-
-  settingsBtn.addEventListener("click", (e) => {
-    e.stopPropagation();
-    settingsMenu.classList.toggle("active");
-  });
-
-  document.addEventListener("click", (e) => {
-    if (!settingsBtn.contains(e.target) && !settingsMenu.contains(e.target)) {
-      settingsMenu.classList.remove("active");
-    }
-
-    document.querySelectorAll(".conv-menu").forEach((menu) => {
-      const btn = menu.previousElementSibling;
-      if (!menu.contains(e.target) && !btn?.contains(e.target)) {
-        menu.classList.remove("active");
+  if (textarea) {
+    textarea.addEventListener("keydown", async (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        await userSendMessage();
       }
     });
-  });
+    textarea.addEventListener("input", autoResizeTextarea);
+  }
+
+  if (newChatBtn) newChatBtn.addEventListener("click", startNewConversation);
+  if (logoutBtn) logoutBtn.addEventListener("click", logout);
+
+  if (settingsBtn && settingsMenu) {
+    settingsBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      settingsMenu.classList.toggle("active");
+    });
+
+    document.addEventListener("click", (e) => {
+      if (!settingsBtn.contains(e.target) && !settingsMenu.contains(e.target)) {
+        settingsMenu.classList.remove("active");
+      }
+
+      document.querySelectorAll(".conv-menu").forEach((menu) => {
+        const btn = menu.previousElementSibling;
+        if (!menu.contains(e.target) && !btn?.contains(e.target)) {
+          menu.classList.remove("active");
+        }
+      });
+    });
+  }
 });
