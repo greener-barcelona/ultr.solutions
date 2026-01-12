@@ -1,37 +1,23 @@
-import { sb, ensureAppUser, saveMessage } from "../Common/db.js";
+import { sb, ensureAppUser } from "../Common/db.js";
 import {
-  modeValue,
-  conversationHistory,
-  cachedConversations,
-  title,
-  activeConversationId,
-  responseDiv,
-  textarea,
   user,
   logout,
   startNewConversation,
   loadSidebarConversations,
   loadConversation,
-  addMessageToConversationHistory,
   refreshCachedConversations,
   userSendMessage,
-  renderMessage,
-  onFileLoaded,
-  replaceWeirdChars,
-  extractBodyContent,
-  toggleElement,
   autoResizeTextarea,
 } from "../Common/LetsThink.js";
-import { brieferPerfil } from "../Common/perfiles.js";
+import { brieferPerfil } from "../Common/perfiles.js"; // 
 
-//let activeConversationId = null;
 let cachedConversations = null;
-//let title = "Nueva conversación";
+let responseDiv = null;
+let textarea = null;
 
 function goTo(url) {
-  // guarda selección actual
   const selector = document.getElementById("modeSelector");
-if (selector) sessionStorage.setItem("ultra_mode", selector.value);
+  if (selector) sessionStorage.setItem("ultra_mode", selector.value);
 
   document.body.classList.add("page-leave");
   setTimeout(() => (window.location.href = url), 160);
@@ -65,20 +51,22 @@ document.addEventListener("DOMContentLoaded", async () => {
   const settingsMenu = document.getElementById("settingsMenu");
   const logoutBtn = document.getElementById("logoutBtn");
   const newChatBtn = document.getElementById("newChatBtn");
-
   const modeSelector = document.getElementById("modeSelector");
 
   // sesión supabase
   const {
     data: { session },
   } = await sb.auth.getSession();
+
   if (!session || !user) {
     window.location.href = "../LogIn/";
     return;
   }
 
   await ensureAppUser();
-  await refreshCachedConversations();
+
+  // IMPORTANT: necesitamos el array para el buscador
+  cachedConversations = await refreshCachedConversations();
   await loadSidebarConversations();
 
   // mantener selector
@@ -89,9 +77,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   // sale del briefer
   modeSelector.addEventListener("change", (e) => {
     const value = e.target.value;
-    if (value !== "Briefer") {
-      goTo("../Chat/");
-    }
+    if (value !== "Briefer") goTo("../Chat/");
   });
 
   // buscador
@@ -112,15 +98,19 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (!query || !cachedConversations) return;
 
     cachedConversations.forEach((conv) => {
-      const titleMatch = conv.title.toLowerCase().includes(query);
-      const contentMatch = conv._messages?.some((m) =>
-        (m.text || "").toLowerCase().includes(query)
-      );
+      const titleMatch = (conv.title || "").toLowerCase().includes(query);
+
+      // soporta ambos formatos: string o {text: "..."}
+      const msgs = conv._messages || [];
+      const contentMatch = msgs.some((m) => {
+        const text = typeof m === "string" ? m : m?.text || "";
+        return text.toLowerCase().includes(query);
+      });
 
       if (titleMatch || contentMatch) {
         const div = document.createElement("div");
         div.className = "search-result-item";
-        div.innerHTML = `<div class="search-result-title">${conv.title}</div>`;
+        div.innerHTML = `<div class="search-result-title">${conv.title || ""}</div>`;
         div.onclick = () => {
           closeSearchModal();
           loadConversation(conv.id);
@@ -130,6 +120,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   });
 
+  // input chat
   textarea.addEventListener("keydown", async (e) => {
     if (e.key === "Enter") {
       e.preventDefault();
@@ -139,7 +130,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   textarea.addEventListener("input", autoResizeTextarea);
 
   newChatBtn.addEventListener("click", startNewConversation);
-
   logoutBtn.addEventListener("click", logout);
 
   settingsBtn.addEventListener("click", (e) => {
