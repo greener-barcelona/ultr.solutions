@@ -1,4 +1,4 @@
-import { sb, ensureAppUser } from "../Common/db.js";
+import { sb, saveMessage, ensureAppUser } from "../Common/db.js";
 import {
   modeValue,
   conversationHistory,
