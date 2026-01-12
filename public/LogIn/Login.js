@@ -1,4 +1,4 @@
-import { sb } from "../Chat/db.js";
+import { sb } from "../Common/db.js";
 
 const allowedDomains = ["itsgreener.com", "ffforward.ai", "villamagia.com"];
 
