@@ -15,6 +15,12 @@ pdfjsLib.GlobalWorkerOptions.workerSrc =
 
 export let modeValue = "Brainstorming";
 export const conversationHistory = [];
+export let cachedConversations = null;
+export let title = "";
+export let activeConversationId = null;
+
+export const responseDiv = document.getElementById("messages");
+export const textarea = document.getElementById("userInputArea");
 
 //Sesión
 

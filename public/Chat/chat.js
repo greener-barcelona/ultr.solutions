@@ -1,7 +1,12 @@
-import { sb, ensureAppUser } from "../Common/db.js";
+import { sb, saveMessage, ensureAppUser } from "../Common/db.js";
 import {
   modeValue,
   conversationHistory,
+  cachedConversations,
+  title,
+  activeConversationId,
+  responseDiv,
+  textarea,
   user,
   logout,
   startNewConversation,
@@ -25,18 +30,9 @@ import {
   recordatorio,
 } from "../Common/perfiles.js";
 
-let cachedConversations = null;
-
-let title = "";
-
 let isChainRunning = false;
 let activeToast = null;
 let toastOutsideHandler = null;
-
-let activeConversationId = null;
-
-const responseDiv = document.getElementById("messages");
-const textarea = document.getElementById("userInputArea");
 
 //Auxiliares
 
