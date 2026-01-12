@@ -180,17 +180,27 @@ body {
 .conversation-item:hover .conv-menu-btn { opacity: 1; }
 
 .conversation-icon {
+  min-width: 42px;
   width: 42px;
   height: 42px;
   border-radius: 50%;
-  background: #5ab9ea;
+  background-color: var(--blue-icon);
+  margin-top: 2px;
+  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: bold;
-  color: black;
+  color: #000;
   font-size: 16px;
   flex-shrink: 0;
+}
+
+.conversation-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
 }
 
 .conversation-text { display: flex; flex-direction: column; line-height: 1.2; }
@@ -477,6 +487,7 @@ body {
   .chat-area { padding: 20px 30px; }
   .input-area { padding: 20px 30px 25px; }
 }
+
 body { animation: pageFadeIn 160ms ease-out both; }
 body.page-leave { opacity: 0; transition: opacity 160ms ease-out; }
 @keyframes pageFadeIn { from {opacity:0} to {opacity:1} }
