@@ -24,14 +24,14 @@ import {
 } from "../Common/LetsThink.js";
 import { brieferPerfil } from "../Common/perfiles.js";
 
-let activeConversationId = null;
+//let activeConversationId = null;
 let cachedConversations = null;
-let title = "Nueva conversación";
+//let title = "Nueva conversación";
 
 function goTo(url) {
   // guarda selección actual
-  const selector = document.getElementById("selector");
-  if (selector) sessionStorage.setItem("ultra_mode", selector.value);
+  const selector = document.getElementById("modeSelector");
+if (selector) sessionStorage.setItem("ultra_mode", selector.value);
 
   document.body.classList.add("page-leave");
   setTimeout(() => (window.location.href = url), 160);
