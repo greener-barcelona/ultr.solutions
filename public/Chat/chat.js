@@ -5,6 +5,8 @@ import {
   cachedConversations,
   title,
   activeConversationId,
+  responseDiv,
+  textarea,
   user,
   logout,
   startNewConversation,
@@ -31,9 +33,6 @@ import {
 let isChainRunning = false;
 let activeToast = null;
 let toastOutsideHandler = null;
-
-const responseDiv = document.getElementById("messages");
-const textarea = document.getElementById("userInputArea");
 
 //Auxiliares
 
