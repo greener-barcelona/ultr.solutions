@@ -2,7 +2,7 @@ import { sb, saveMessage, ensureAppUser } from "../Common/db.js";
 import {
   modeValue,
   conversationHistory,
-  cachedConversations,
+  //cachedConversations,
   title,
   activeConversationId,
   responseDiv,
@@ -37,7 +37,7 @@ let isChainRunning = false;
 let activeToast = null;
 let toastOutsideHandler = null;
 
-//let cachedConversations = null;
+let cachedConversations = null;
 
 //Auxiliares
 
