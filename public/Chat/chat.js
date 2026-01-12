@@ -37,7 +37,7 @@ let isChainRunning = false;
 let activeToast = null;
 let toastOutsideHandler = null;
 
-let cachedConversations = null;
+//let cachedConversations = null;
 
 //Auxiliares
 
