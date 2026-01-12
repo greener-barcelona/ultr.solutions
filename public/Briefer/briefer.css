@@ -154,7 +154,7 @@ body {
 }
 
 .conversation-item {
-  position: relative;
+  position: relative; /* 👈 necesario para que el menú absoluto se ancle aquí */
   display: flex;
   align-items: center;
   gap: 12px;
@@ -178,6 +178,49 @@ body {
 }
 
 .conversation-item:hover .conv-menu-btn { opacity: 1; }
+
+/* ✅ ESTO ES LO QUE TE FALTA: POPUP DEL MENÚ */
+.conv-menu {
+  position: absolute;
+  right: 16px;
+  top: 52px;
+  background-color: var(--background-gray);
+  border-radius: 14px;
+  padding: 8px 0;
+  min-width: 240px;
+
+  box-shadow: 6px 6px 16px var(--shadow-dark),
+    -6px -6px 16px var(--shadow-light);
+
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-8px);
+  transition: all 0.2s ease;
+  z-index: 999;
+}
+
+.conv-menu.active {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.conv-menu-item {
+  padding: 14px 22px;
+  cursor: pointer;
+  font-size: 18px;
+  color: var(--text-dark);
+  transition: background-color 0.2s ease;
+}
+
+.conv-menu-item:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+.conv-menu-item.delete {
+  color: crimson;
+  font-weight: 600;
+}
 
 .conversation-icon {
   min-width: 42px;

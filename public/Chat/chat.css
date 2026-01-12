@@ -639,14 +639,14 @@ body {
   border-radius: 3px;
 }
 
-.conv-menu-btn {
-  background: transparent;
+.conv-menu-btn{
+  background: none;
   border: none;
   cursor: pointer;
   font-size: 20px;
-  padding: 0 6px;
+  color: var(--text-dark);
   margin-left: auto;
-
+  padding: 4px 6px;
   opacity: 0;
   transition: opacity 0.2s ease;
 }
