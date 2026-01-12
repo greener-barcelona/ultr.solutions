@@ -19,8 +19,8 @@ export let cachedConversations = null;
 export let title = "";
 export let activeConversationId = null;
 
-export const responseDiv = null;
-export const textarea = null;
+export let responseDiv = null;
+export let textarea = null;
 
 //Sesión
 
