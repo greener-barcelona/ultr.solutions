@@ -453,6 +453,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   await ensureAppUser();
   await loadSidebarConversations();
 
+  responseDiv = document.getElementById("messages");
+  textarea = document.getElementById("userInputArea");
+
   searchBtn.addEventListener("click", () => {
     searchModal.classList.add("active");
     searchInput.value = "";
