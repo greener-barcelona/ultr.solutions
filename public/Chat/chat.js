@@ -34,7 +34,7 @@ let isChainRunning = false;
 let activeToast = null;
 let toastOutsideHandler = null;
 
-const cachedConversations = [];
+let cachedConversations = [];
 
 const MODE_KEY = "mode";
 let modeValue = "Brainstorming";
@@ -911,5 +911,5 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   });
 
-  cachedConversations = await refreshCachedConversations();
+   await refreshCachedConversations();
 });
