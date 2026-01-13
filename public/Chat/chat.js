@@ -232,7 +232,7 @@ export async function userSendMessage() {
     title = text.length > 40 ? text.slice(0, 40) + "..." : text;
     await renameConversation(activeConversationId, title);
     cachedConversations = cachedConversations.map((conversation) =>
-      conversation.id === activeConversationId.id
+      conversation.id === activeConversationId
         ? { ...conversation, title: title }
         : conversation
     );
@@ -775,9 +775,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     !summaryBtn ||
     !fileInput ||
     !modeSelector ||
-    !multiplier3 ||
-    !multiplier6 ||
-    !multiplier12 ||
+    //!multiplier3 ||
+    //!multiplier6 ||
+    //!multiplier12 ||
     !textarea ||
     !responseDiv
   ) {
@@ -787,13 +787,13 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   initModeSelector(modeSelector);
 
-  multiplier3.addEventListener("click", () => runProfilesChain(3, multiplier3));
+  //multiplier3.addEventListener("click", () => runProfilesChain(3, multiplier3));
 
-  multiplier6.addEventListener("click", () => runProfilesChain(6, multiplier6));
+  //multiplier6.addEventListener("click", () => runProfilesChain(6, multiplier6));
 
-  multiplier12.addEventListener("click", () =>
-    runProfilesChain(12, multiplier12)
-  );
+  //multiplier12.addEventListener("click", () =>
+    //runProfilesChain(12, multiplier12)
+  //);
 
   searchBtn.addEventListener("click", () => {
     searchModal.classList.add("active");
@@ -912,5 +912,5 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   });
 
-   await refreshCachedConversations();
+   cachedConversations = await refreshCachedConversations();
 });

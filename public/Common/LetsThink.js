@@ -49,6 +49,7 @@ export async function refreshCachedConversations(cachedConversations) {
     conv._messages = await getConversationMessages(conv.id);
     conv._messages = conv._messages.map((msg) => msg.text);
   }
+  return cachedConversations;
 }
 
 //Mensajes
