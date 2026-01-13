@@ -1,14 +1,18 @@
-import { sb, saveMessage, ensureAppUser } from "../Common/db.js";
+import * as pdfjsLib from "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.2.67/pdf.min.mjs";
+import {
+  sb,
+  createConversation,
+  saveMessage,
+  getAllConversations,
+  getConversationMessages,
+  renameConversation,
+  deleteConversation,
+} from "../Common/db.js";
 import {
   logout,
-  startNewConversation,
-  loadSidebarConversations,
-  loadConversation,
   addMessageToConversationHistory,
   refreshCachedConversations,
-  userSendMessage,
   renderMessage,
-  onFileLoaded,
   replaceWeirdChars,
   extractBodyContent,
   toggleElement,
@@ -22,11 +26,14 @@ import {
   recordatorio,
 } from "../Common/perfiles.js";
 
+pdfjsLib.GlobalWorkerOptions.workerSrc =
+  "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.2.67/pdf.worker.min.mjs";
+
 let isChainRunning = false;
 let activeToast = null;
 let toastOutsideHandler = null;
 
-let cachedConversations = null;
+const cachedConversations = [];
 
 const MODE_KEY = "mode";
 let modeValue = "Brainstorming";
@@ -38,58 +45,220 @@ const conversationHistory = [];
 const responseDiv = document.getElementById("messages");
 const textarea = document.getElementById("userInputArea");
 
-//Auxiliares
+//Conversaciones
 
-function applyMode(mode) {
-  if (mode === "Briefer") {
-    localStorage.setItem(MODE_KEY, "Briefer");
-    window.location.href = "../Briefer/";
-    return;
+async function startNewConversation() {
+  responseDiv.innerHTML = "";
+  conversationHistory.length = 0;
+  activeConversationId = null;
+  title = "Nueva conversación";
+  const newConv = await createConversation("Nueva conversación");
+
+  if (newConv) {
+    activeConversationId = newConv.id;
+    cachedConversations.push(newConv);
+    cachedConversations[cachedConversations.length - 1]._messages = [];
   }
-
-  localStorage.setItem(MODE_KEY, mode);
-  modeValue = mode;
+  await loadSidebarConversations();
 }
 
-function initModeSelector(selector) {
-  const saved = localStorage.getItem(MODE_KEY);
-  const valid = ["Brainstorming", "Naming", "Socialstorming", "Briefer"];
-  const initial = valid.includes(saved)
-    ? saved
-    : selector.value || "Brainstorming";
+function addConversationToSidebar(conv) {
+  const list = document.getElementById("conversationsList");
+  const div = document.createElement("div");
+  div.className = "conversation-item";
+  div.dataset.conversationId = conv.id;
 
-  selector.value = initial;
+  const icon = document.createElement("div");
+  icon.className = "conversation-icon";
+  const username = conv.created_by_email.split("@")[0];
+  icon.textContent = username[0].toUpperCase();
 
-  if (initial === "Briefer") {
-    window.location.href = "../Briefer/";
-    return;
-  }
+  const text = document.createElement("div");
+  text.className = "conversation-text";
+  text.innerHTML = `
+    <div class="title">${conv.title}</div>
+    <div class="user">${username}</div>
+  `;
 
-  applyMode(initial);
-}
+  const menuButton = document.createElement("button");
+  menuButton.className = "conv-menu-btn";
+  menuButton.textContent = "⋮";
 
-function getPerfilContent(perfilKey) {
-  let activePerfiles = null;
-  let activeInstrucciones = null;
+  const menu = document.createElement("div");
+  menu.className = "conv-menu";
+  menu.innerHTML = `
+    <div class="conv-menu-item rename">Renombrar</div>
+    <div class="conv-menu-item delete">Eliminar</div>
+  `;
 
-  switch (modeValue) {
-    case "Brainstorming":
-      activePerfiles = dialogoPerfiles;
-      activeInstrucciones = dialogosInstrucciones;
-      break;
-    case "Naming":
-      console.warn("Cadena: aún no hay perfiles de Naming");
+  div.appendChild(icon);
+  div.appendChild(text);
+  div.appendChild(menuButton);
+
+  menuButton.addEventListener("click", (e) => {
+    e.stopPropagation();
+
+    document.querySelectorAll(".conv-menu").forEach((m) => {
+      if (m !== menu) m.classList.remove("active");
+    });
+
+    if (!div.contains(menu)) {
+      div.appendChild(menu);
+    }
+
+    menu.classList.toggle("active");
+  });
+
+  menu.querySelector(".rename").addEventListener("click", async (e) => {
+    e.stopPropagation();
+
+    const newTitle = prompt("Nuevo nombre para la conversación:", conv.title);
+    if (!newTitle || !newTitle.trim()) return;
+
+    const ok = await renameConversation(conv.id, newTitle.trim());
+    if (!ok) {
+      alert("Error al renombrar");
       return;
-    case "Socialstorming":
-      activePerfiles = socialPerfiles;
-      activeInstrucciones = socialInstrucciones;
-      break;
+    }
+
+    cachedConversations = cachedConversations.map((conversation) =>
+      conversation.id === conv.id
+        ? { ...conversation, title: newTitle.trim() }
+        : conversation
+    );
+
+    if (activeConversationId === conv.id) {
+      title = newTitle.trim();
+    }
+    await loadSidebarConversations();
+  });
+
+  menu.querySelector(".delete").addEventListener("click", async (e) => {
+    e.stopPropagation();
+
+    if (!confirm("¿Seguro que deseas eliminar esta conversación?")) return;
+
+    const ok = await deleteConversation(conv.id);
+    if (!ok) {
+      alert("Error al eliminar");
+      return;
+    }
+
+    cachedConversations = cachedConversations.filter(
+      (conversation) => conversation.id !== conv.id
+    );
+    await loadSidebarConversations();
+
+    if (activeConversationId === conv.id) {
+      responseDiv.innerHTML = "";
+      activeConversationId = null;
+    }
+  });
+
+  div.addEventListener("click", () => loadConversation(conv.id));
+
+  list.appendChild(div);
+}
+
+async function loadSidebarConversations() {
+  const list = document.getElementById("conversationsList");
+  list.innerHTML = "";
+  const all = await getAllConversations();
+
+  const ordered = [...all].sort(
+    (a, b) => new Date(b.updated_at) - new Date(a.updated_at)
+  );
+
+  ordered.forEach(addConversationToSidebar);
+}
+
+async function loadConversation(conversationId) {
+  const { data: convData, error } = await sb
+    .from("conversations")
+    .select("title")
+    .eq("id", conversationId)
+    .single();
+
+  if (!error && convData) {
+    title = convData.title;
+    const titleDiv = document.getElementById("conversationTitle");
+    if (titleDiv) titleDiv.textContent = convData.title;
   }
 
-  return {
-    role: "system",
-    content: `${activePerfiles[perfilKey].content}\n\n${activeInstrucciones}`,
-  };
+  const messages = await getConversationMessages(conversationId);
+  conversationHistory.length = 0;
+  responseDiv.innerHTML = "";
+
+  messages.forEach((msg) => {
+    const rendered = renderMessage({
+      author: msg.creative_agent || msg.author_name.split(" ")[0] || "Usuario",
+      text: msg.text,
+      userProfile: msg.author_avatar,
+    });
+
+    addMessageToConversationHistory(rendered, conversationHistory);
+    console.log(conversationHistory);
+
+    if (msg.creative_agent === "system") return;
+    responseDiv.appendChild(rendered);
+  });
+
+  responseDiv.scrollTop = responseDiv.scrollHeight;
+}
+
+//Mensajes
+
+export async function userSendMessage() {
+  if (!textarea || !responseDiv) return null;
+
+  const text = textarea.value.trim();
+  if (!text) return null;
+
+  if (!activeConversationId) {
+    title = text.length > 40 ? text.slice(0, 40) + "..." : text;
+    const newConv = await createConversation(title);
+
+    if (newConv) {
+      activeConversationId = newConv.id;
+      cachedConversations.push(newConv);
+      cachedConversations[cachedConversations.length - 1]._messages = [];
+      await loadSidebarConversations();
+    }
+  }
+
+  if (title === "Nueva conversación") {
+    title = text.length > 40 ? text.slice(0, 40) + "..." : text;
+    await renameConversation(activeConversationId, title);
+    cachedConversations = cachedConversations.map((conversation) =>
+      conversation.id === activeConversationId.id
+        ? { ...conversation, title: title }
+        : conversation
+    );
+    await loadSidebarConversations();
+  }
+
+  const uiMessage = renderMessage({
+    author: user.name.split(" ")[0] || "Usuario",
+    text: text,
+    userProfile: user.profilePicture,
+  });
+
+  responseDiv.appendChild(uiMessage);
+  responseDiv.scrollTop = responseDiv.scrollHeight;
+
+  addMessageToConversationHistory(uiMessage, conversationHistory);
+  console.log(conversationHistory);
+
+  textarea.value = "";
+  cachedConversations = cachedConversations.map((conversation) =>
+    conversation.id === activeConversationId
+      ? {
+          ...conversation,
+          _messages: [...conversation._messages, uiMessage.textContent.trim()],
+        }
+      : conversation
+  );
+  await saveMessage(activeConversationId, { text: text });
 }
 
 //Botones
@@ -119,6 +288,89 @@ async function sendMessageToProfileButton(perfilKey, API, triggerBtn) {
   await sendMessageToProfile(perfilKey, API, conversationIdAtStart);
 
   toggleElement(triggerBtn);
+}
+
+//Archivos
+
+export async function onFileLoaded(e, fileInput) {
+  const files = Array.from(e.target.files);
+  for (const file of files) {
+    if (!file) continue;
+
+    if (file.type !== "application/pdf") continue;
+
+    const maxSize = 30 * 1024 * 1024;
+    if (file.size > maxSize) {
+      alert("El archivo es demasiado grande. Máximo 30MB");
+      continue;
+    }
+
+    try {
+      const PDFcontent = await extractPDFText(file);
+
+      if (!PDFcontent) {
+        const errorDiv = document.createElement("div");
+        errorDiv.className = `message error text-content`;
+        errorDiv.textContent = `el PDF ${file.name} no tiene texto extraíble.`;
+        responseDiv.appendChild(errorDiv);
+        continue;
+      }
+
+      const replyDiv = renderMessage({
+        author: user.name.split(" ")[0] || "Usuario",
+        text: `${file.name} cargado correctamente.`,
+        userProfile: user.profilePicture,
+      });
+
+      addMessageToConversationHistory(replyDiv, conversationHistory);
+      console.log(conversationHistory);
+
+      responseDiv.appendChild(replyDiv);
+
+      await saveMessage(activeConversationId, { text: replyDiv.textContent });
+
+      conversationHistory.push({
+        role: "user",
+        content: `${file.name}: ${PDFcontent}`,
+      });
+
+      if (!activeConversationId) {
+        title =
+          file.name.length > 40 ? file.name.slice(0, 40) + "..." : file.name;
+        const newConv = await createConversation(title);
+
+        if (newConv) {
+          activeConversationId = newConv.id;
+          await loadSidebarConversations();
+        }
+      }
+
+      await saveMessage(activeConversationId, {
+        text: `${file.name}: ${PDFcontent.txt}`,
+        creativeAgent: `system`,
+      });
+    } catch (error) {
+      console.error("Error al procesar el PDF:", error);
+      alert(`Error al procesar el archivo ${file.name}`);
+    }
+
+    fileInput.value = "";
+  }
+}
+
+async function extractPDFText(file) {
+  const arrayBuffer = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
+
+  let fullText = "";
+
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i);
+    const textContent = await page.getTextContent();
+    const pageText = textContent.items.map((item) => item.str).join(" ");
+    fullText += pageText + "\n\n";
+  }
+  return fullText.trim();
 }
 
 //x3 x6 x12
@@ -284,7 +536,9 @@ async function sendMessageToProfile(perfilKey, API, conversationId) {
         author: `${perfilKey}-${API}`,
         text: cleanhtml,
       });
-      addMessageToConversationHistory(replyDiv);
+      addMessageToConversationHistory(replyDiv, conversationHistory);
+      console.log(conversationHistory);
+
       responseDiv.appendChild(replyDiv);
       responseDiv.scrollTop = responseDiv.scrollHeight;
     } else {
@@ -387,7 +641,9 @@ async function summarizeConversation(conversationId, convTitle, history) {
           author: "summary-openai",
           text: `<strong>Resumen de la ronda ${convTitle}:</strong><br>${cleanhtml}`,
         });
-        addMessageToConversationHistory(replyDiv);
+        addMessageToConversationHistory(replyDiv, conversationHistory);
+        console.log(conversationHistory);
+
         responseDiv.appendChild(replyDiv);
         responseDiv.scrollTop = responseDiv.scrollHeight;
       }
@@ -411,6 +667,60 @@ async function summarizeConversation(conversationId, convTitle, history) {
       pending.classList.add("error");
     }
   }
+}
+
+//Auxiliares
+
+function applyMode(mode) {
+  if (mode === "Briefer") {
+    localStorage.setItem(MODE_KEY, "Briefer");
+    window.location.href = "../Briefer/";
+    return;
+  }
+
+  localStorage.setItem(MODE_KEY, mode);
+  modeValue = mode;
+}
+
+function initModeSelector(selector) {
+  const saved = localStorage.getItem(MODE_KEY);
+  const valid = ["Brainstorming", "Naming", "Socialstorming", "Briefer"];
+  const initial = valid.includes(saved)
+    ? saved
+    : selector.value || "Brainstorming";
+
+  selector.value = initial;
+
+  if (initial === "Briefer") {
+    window.location.href = "../Briefer/";
+    return;
+  }
+
+  applyMode(initial);
+}
+
+function getPerfilContent(perfilKey) {
+  let activePerfiles = null;
+  let activeInstrucciones = null;
+
+  switch (modeValue) {
+    case "Brainstorming":
+      activePerfiles = dialogoPerfiles;
+      activeInstrucciones = dialogosInstrucciones;
+      break;
+    case "Naming":
+      console.warn("Cadena: aún no hay perfiles de Naming");
+      return;
+    case "Socialstorming":
+      activePerfiles = socialPerfiles;
+      activeInstrucciones = socialInstrucciones;
+      break;
+  }
+
+  return {
+    role: "system",
+    content: `${activePerfiles[perfilKey].content}\n\n${activeInstrucciones}`,
+  };
 }
 
 //Inicialización
@@ -542,12 +852,13 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   textarea.addEventListener("input", () => {
-    autoResizeTextarea();
+    autoResizeTextarea(textarea);
   });
 
-  newChatBtn.addEventListener("click", async () => {
-    await startNewConversation();
-  });
+  newChatBtn.addEventListener(
+    "click",
+    async () => await startNewConversation()
+  );
 
   const profileButtons = document.querySelectorAll("button[data-api]");
   profileButtons.forEach((btn) =>
@@ -570,9 +881,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   fileInput.addEventListener("change", async (e) => onFileLoaded(e, fileInput));
 
-  logoutBtn.addEventListener("click", () =>
-    logout(cachedConversations, MODE_KEY)
-  );
+  logoutBtn.addEventListener("click", () => {
+    cachedConversations.length = 0;
+    logout(MODE_KEY);
+  });
 
   settingsBtn.addEventListener("click", (e) => {
     e.stopPropagation();
@@ -598,5 +910,5 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   });
 
-  await refreshCachedConversations();
+  cachedConversations = await refreshCachedConversations();
 });
