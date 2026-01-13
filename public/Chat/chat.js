@@ -1,6 +1,7 @@
 import * as pdfjsLib from "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.2.67/pdf.min.mjs";
 import {
   sb,
+  ensureAppUser,
   createConversation,
   saveMessage,
   getAllConversations,
