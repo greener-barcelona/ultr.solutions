@@ -10,6 +10,7 @@ import {
   deleteConversation,
 } from "../Common/db.js";
 import {
+  user,
   logout,
   addMessageToConversationHistory,
   refreshCachedConversations,
