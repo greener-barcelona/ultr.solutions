@@ -1,3 +1,5 @@
+// briefer.js
+
 import { sb, ensureAppUser } from "../Common/db.js";
 import {
   user,
@@ -12,14 +14,21 @@ import {
   assignTextarea,
 } from "../Common/LetsThink.js";
 
-const MODE_KEY = "ultra_mode";
-
 let cachedConversations = null;
+
+function goTo(url) {
+  const selector = document.getElementById("modeSelector");
+  if (selector) sessionStorage.setItem("ultra_mode", selector.value);
+
+  document.body.classList.add("page-leave");
+  setTimeout(() => (window.location.href = url), 160);
+}
 
 function openSearchModal() {
   const searchModal = document.getElementById("searchModal");
   const searchInput = document.getElementById("searchInput");
   const searchResults = document.getElementById("searchResults");
+
   if (!searchModal || !searchInput || !searchResults) return;
 
   searchModal.classList.add("active");
@@ -37,9 +46,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   assignResponseDiv(document.getElementById("messages"));
   assignTextarea(document.getElementById("userInputArea"));
 
-  const modeSelector = document.getElementById("modeSelector");
-  const textarea = document.getElementById("userInputArea");
-
   const searchBtn = document.getElementById("searchChatBtn");
   const searchModal = document.getElementById("searchModal");
   const searchInput = document.getElementById("searchInput");
@@ -49,7 +55,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   const settingsMenu = document.getElementById("settingsMenu");
   const logoutBtn = document.getElementById("logoutBtn");
   const newChatBtn = document.getElementById("newChatBtn");
+  const modeSelector = document.getElementById("modeSelector");
+  const textarea = document.getElementById("userInputArea");
 
+  // sesión supabase
   const {
     data: { session },
   } = await sb.auth.getSession();
@@ -60,34 +69,25 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   await ensureAppUser();
-
-  // Si venimos a Briefer pero el modo guardado no es Briefer, vuelve a Chat
-  const saved = localStorage.getItem(MODE_KEY);
-  if (saved && saved !== "Briefer") {
-    window.location.href = "../Chat/";
-    return;
-  }
-
-  // fija selector a Briefer (sin pisar a otro)
-  if (modeSelector) modeSelector.value = "Briefer";
-
   const refreshed = await refreshCachedConversations();
   if (Array.isArray(refreshed)) cachedConversations = refreshed;
 
   await loadSidebarConversations();
 
-  // Cambiar modo desde Briefer -> vuelve a Chat y guarda modo
+  // mantener selector
+  const saved = sessionStorage.getItem("ultra_mode");
+  if (saved && modeSelector) modeSelector.value = saved;
+  if (modeSelector) modeSelector.value = "Briefer";
+
+  // sale del briefer
   if (modeSelector) {
     modeSelector.addEventListener("change", (e) => {
       const value = e.target.value;
-      localStorage.setItem(MODE_KEY, value);
-
-      if (value !== "Briefer") {
-        window.location.href = "../Chat/";
-      }
+      if (value !== "Briefer") goTo("../Chat/");
     });
   }
 
+  // buscador
   if (searchBtn) searchBtn.addEventListener("click", openSearchModal);
   if (closeSearchBtn) closeSearchBtn.addEventListener("click", closeSearchModal);
 
@@ -108,27 +108,30 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (!query || !Array.isArray(cachedConversations)) return;
 
       cachedConversations.forEach((conv) => {
-        const titleMatch = (conv.title || "").toLowerCase().includes(query);
+        const titleText = (conv.title || "").toLowerCase();
+        const titleMatch = titleText.includes(query);
+
         const msgs = conv._messages || [];
         const contentMatch = msgs.some((m) => {
           const text = typeof m === "string" ? m : m?.text || "";
           return text.toLowerCase().includes(query);
         });
 
-        if (!titleMatch && !contentMatch) return;
-
-        const div = document.createElement("div");
-        div.className = "search-result-item";
-        div.innerHTML = `<div class="search-result-title">${conv.title || ""}</div>`;
-        div.onclick = () => {
-          closeSearchModal();
-          loadConversation(conv.id);
-        };
-        searchResults.appendChild(div);
+        if (titleMatch || contentMatch) {
+          const div = document.createElement("div");
+          div.className = "search-result-item";
+          div.innerHTML = `<div class="search-result-title">${conv.title || ""}</div>`;
+          div.onclick = () => {
+            closeSearchModal();
+            loadConversation(conv.id);
+          };
+          searchResults.appendChild(div);
+        }
       });
     });
   }
 
+  // input chat
   if (textarea) {
     textarea.addEventListener("keydown", async (e) => {
       if (e.key === "Enter") {
