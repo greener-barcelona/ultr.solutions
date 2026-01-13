@@ -1,6 +1,5 @@
-import { sb, ensureAppUser } from "../Common/db.js";
+import { sb, ensureAppUser, saveMessage } from "../Common/db.js";
 import {
-  user,
   logout,
   startNewConversation,
   loadSidebarConversations,
@@ -8,13 +7,19 @@ import {
   refreshCachedConversations,
   userSendMessage,
   autoResizeTextarea,
-  assignResponseDiv,
-  assignTextarea,
 } from "../Common/LetsThink.js";
 
-const MODE_KEY = "ultra_mode";
-
 let cachedConversations = null;
+
+const MODE_KEY = "mode";
+let modeValue = "Brainstorming";
+let activeConversationId = null;
+let title = "";
+
+const conversationHistory = [];
+
+const responseDiv = document.getElementById("messages");
+const textarea = document.getElementById("userInputArea");
 
 function openSearchModal() {
   const searchModal = document.getElementById("searchModal");
@@ -34,9 +39,6 @@ function closeSearchModal() {
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
-  assignResponseDiv(document.getElementById("messages"));
-  assignTextarea(document.getElementById("userInputArea"));
-
   const modeSelector = document.getElementById("modeSelector");
   const textarea = document.getElementById("userInputArea");
 
@@ -54,7 +56,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     data: { session },
   } = await sb.auth.getSession();
 
-  if (!session || !user) {
+  if (!session) {
     window.location.href = "../LogIn/";
     return;
   }
@@ -89,7 +91,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   if (searchBtn) searchBtn.addEventListener("click", openSearchModal);
-  if (closeSearchBtn) closeSearchBtn.addEventListener("click", closeSearchModal);
+  if (closeSearchBtn)
+    closeSearchBtn.addEventListener("click", closeSearchModal);
 
   if (searchModal) {
     searchModal.addEventListener("click", (e) => {
@@ -119,7 +122,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         const div = document.createElement("div");
         div.className = "search-result-item";
-        div.innerHTML = `<div class="search-result-title">${conv.title || ""}</div>`;
+        div.innerHTML = `<div class="search-result-title">${
+          conv.title || ""
+        }</div>`;
         div.onclick = () => {
           closeSearchModal();
           loadConversation(conv.id);

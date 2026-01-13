@@ -13,39 +13,29 @@ import {
 pdfjsLib.GlobalWorkerOptions.workerSrc =
   "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.2.67/pdf.worker.min.mjs";
 
-let cachedConversations = null;
+//let cachedConversations = null;
 
-export const conversationHistory = [];
-export let modeValue = "Brainstorming";
-export let activeConversationId = null;
-export let title = "";
+//const conversationHistory = [];
+//let activeConversationId = null;
+//let title = "";
 
-export let responseDiv;
-export let textarea;
+//let responseDiv;
+//let textarea;
 
-export function assignModeValue(value) {
-  modeValue = value;
-}
-export function assignResponseDiv(value) {
-  responseDiv = value;
-}
-export function assignTextarea(value) {
-  textarea = value;
-}
 //Sesión
 
 export const user = getLocalSession();
 
-export function logout() {
+export function logout(cachedConversations, MODE_KEY) {
   cachedConversations = null;
-  localStorage.removeItem("ultraUser");
+  localStorage.removeItem(MODE_KEY);
   sb.auth.signOut();
   window.location.href = "../LogIn/";
 }
 
 //Conversaciones
 
-export async function startNewConversation() {
+export async function startNewConversation(cachedConversations) {
   responseDiv.innerHTML = "";
   conversationHistory.length = 0;
   activeConversationId = null;
@@ -58,6 +48,8 @@ export async function startNewConversation() {
     cachedConversations[cachedConversations.length - 1]._messages = [];
   }
   await loadSidebarConversations();
+
+  return cachedConversations;
 }
 
 function addConversationToSidebar(conv) {

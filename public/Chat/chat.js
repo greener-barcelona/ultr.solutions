@@ -1,16 +1,5 @@
 import { sb, saveMessage, ensureAppUser } from "../Common/db.js";
 import {
-  modeValue,
-  conversationHistory,
-  //cachedConversations,
-  title,
-  activeConversationId,
-  responseDiv,
-  textarea,
-  assignModeValue,
-  assignTextarea,
-  assignResponseDiv,
-  user,
   logout,
   startNewConversation,
   loadSidebarConversations,
@@ -39,7 +28,45 @@ let toastOutsideHandler = null;
 
 let cachedConversations = null;
 
+const MODE_KEY = "mode";
+let modeValue = "Brainstorming";
+let activeConversationId = null;
+let title = "";
+
+const conversationHistory = [];
+
+const responseDiv = document.getElementById("messages");
+const textarea = document.getElementById("userInputArea");
+
 //Auxiliares
+
+function applyMode(mode) {
+  if (mode === "Briefer") {
+    localStorage.setItem(MODE_KEY, "Briefer");
+    window.location.href = "../Briefer/";
+    return;
+  }
+
+  localStorage.setItem(MODE_KEY, mode);
+  modeValue = mode;
+}
+
+function initModeSelector(selector) {
+  const saved = localStorage.getItem(MODE_KEY);
+  const valid = ["Brainstorming", "Naming", "Socialstorming", "Briefer"];
+  const initial = valid.includes(saved)
+    ? saved
+    : selector.value || "Brainstorming";
+
+  selector.value = initial;
+
+  if (initial === "Briefer") {
+    window.location.href = "../Briefer/";
+    return;
+  }
+
+  applyMode(initial);
+}
 
 function getPerfilContent(perfilKey) {
   let activePerfiles = null;
@@ -397,8 +424,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     window.location.href = "../LogIn/";
     return;
   }
-  assignResponseDiv(document.getElementById("messages"));
-  assignTextarea(document.getElementById("userInputArea"));
+
+  await ensureAppUser();
+  await loadSidebarConversations();
 
   const searchBtn = document.getElementById("searchChatBtn");
   const searchModal = document.getElementById("searchModal");
@@ -434,31 +462,26 @@ document.addEventListener("DOMContentLoaded", async () => {
     !summaryPdfBtn ||
     !summaryBtn ||
     !fileInput ||
-    !modeSelector
+    !modeSelector ||
+    !multiplier3 ||
+    !multiplier6 ||
+    !multiplier12 ||
+    !textarea ||
+    !responseDiv
   ) {
     console.warn("Buscador no inicializado (elementos faltantes)");
     return;
   }
-  if (multiplier3) {
-    multiplier3.addEventListener("click", () =>
-      runProfilesChain(3, multiplier3)
-    );
-  }
 
-  if (multiplier6) {
-    multiplier6.addEventListener("click", () =>
-      runProfilesChain(6, multiplier6)
-    );
-  }
+  initModeSelector(modeSelector);
 
-  if (multiplier12) {
-    multiplier12.addEventListener("click", () =>
-      runProfilesChain(12, multiplier12)
-    );
-  }
+  multiplier3.addEventListener("click", () => runProfilesChain(3, multiplier3));
 
-  await ensureAppUser();
-  await loadSidebarConversations();
+  multiplier6.addEventListener("click", () => runProfilesChain(6, multiplier6));
+
+  multiplier12.addEventListener("click", () =>
+    runProfilesChain(12, multiplier12)
+  );
 
   searchBtn.addEventListener("click", () => {
     searchModal.classList.add("active");
@@ -547,7 +570,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   fileInput.addEventListener("change", async (e) => onFileLoaded(e, fileInput));
 
-  logoutBtn.addEventListener("click", logout);
+  logoutBtn.addEventListener("click", () =>
+    logout(cachedConversations, MODE_KEY)
+  );
 
   settingsBtn.addEventListener("click", (e) => {
     e.stopPropagation();
@@ -556,9 +581,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   modeSelector.addEventListener("change", (e) => {
     const value = e.target.value;
-    if (value === "Briefer") window.location.href = "../Briefer/";
-    assignModeValue(value);
+    applyMode(value);
     titleText.text = value;
+    document.title = mode;
   });
   document.addEventListener("click", (e) => {
     if (!settingsBtn.contains(e.target) && !settingsMenu.contains(e.target)) {
