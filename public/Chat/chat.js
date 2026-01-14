@@ -15,6 +15,7 @@ import {
   addMessageToConversationHistory,
   refreshCachedConversations,
   renderMessage,
+  extractPDFText,
   replaceWeirdChars,
   extractBodyContent,
   toggleElement,
@@ -219,7 +220,7 @@ export async function userSendMessage() {
   if (!textarea || !responseDiv) return;
 
   const text = textarea.value.trim();
-  if (!text) return alert("Escribe un mensaje antes de enviar.");
+  if (!text) return;
 
   if (!activeConversationId) {
     title = text.length > 40 ? text.slice(0, 40) + "..." : text;
@@ -348,21 +349,6 @@ export async function onFileLoaded(e, fileInput) {
 
     fileInput.value = "";
   }
-}
-
-async function extractPDFText(file) {
-  const arrayBuffer = await file.arrayBuffer();
-  const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
-
-  let fullText = "";
-
-  for (let i = 1; i <= pdf.numPages; i++) {
-    const page = await pdf.getPage(i);
-    const textContent = await page.getTextContent();
-    const pageText = textContent.items.map((item) => item.str).join(" ");
-    fullText += pageText + "\n\n";
-  }
-  return fullText.trim();
 }
 
 //x3 x6 x12
