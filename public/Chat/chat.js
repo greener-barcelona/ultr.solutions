@@ -49,7 +49,8 @@ const textarea = document.getElementById("userInputArea");
 
 //Conversaciones
 
-async function startNewConversation(title) {
+async function startNewConversation(newTitle) {
+  title = newTitle || "Nueva conversación";
   responseDiv.innerHTML = "";
   conversationHistory.length = 0;
   const newConv = await createConversation(title || "Nueva conversación");
