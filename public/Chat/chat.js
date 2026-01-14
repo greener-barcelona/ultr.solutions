@@ -216,14 +216,14 @@ async function loadConversation(conversationId) {
 //Mensajes
 
 export async function userSendMessage() {
-  if (!textarea || !responseDiv) return null;
+  if (!textarea || !responseDiv) return;
 
   const text = textarea.value.trim();
-  if (!text) return null;
+  if (!text) return alert("Escribe un mensaje antes de enviar.");
 
   if (!activeConversationId) {
     title = text.length > 40 ? text.slice(0, 40) + "..." : text;
-    startNewConversation(title);
+    await startNewConversation(title);
   }
 
   if (title === "Nueva conversación") {
@@ -327,8 +327,6 @@ export async function onFileLoaded(e, fileInput) {
 
       responseDiv.appendChild(replyDiv);
 
-      await saveMessage(activeConversationId, { text: replyDiv.textContent });
-
       conversationHistory.push({
         role: "user",
         content: `${file.name}: ${PDFcontent}`,
@@ -337,12 +335,11 @@ export async function onFileLoaded(e, fileInput) {
       if (!activeConversationId) {
         title =
           file.name.length > 40 ? file.name.slice(0, 40) + "..." : file.name;
-        startNewConversation(title);
+        await startNewConversation(title);
       }
 
       await saveMessage(activeConversationId, {
         text: `${file.name}: ${PDFcontent.txt}`,
-        creativeAgent: `system`,
       });
     } catch (error) {
       console.error("Error al procesar el PDF:", error);
