@@ -340,7 +340,12 @@ export async function onFileLoaded(e, fileInput) {
       }
 
       await saveMessage(activeConversationId, {
+        text: replyDiv.textContent.trim(),
+      });
+
+      await saveMessage(activeConversationId, {
         text: `${file.name}: ${PDFcontent}`,
+        creativeAgent: "system",
       });
     } catch (error) {
       console.error("Error al procesar el PDF:", error);
