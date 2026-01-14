@@ -881,7 +881,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const value = e.target.value;
     applyMode(value);
     titleText.text = value;
-    document.title = mode;
+    document.title = modeValue;
   });
   document.addEventListener("click", (e) => {
     if (!settingsBtn.contains(e.target) && !settingsMenu.contains(e.target)) {
