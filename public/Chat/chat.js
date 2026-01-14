@@ -190,25 +190,26 @@ async function loadConversation(conversationId) {
     const titleDiv = document.getElementById("conversationTitle");
     if (titleDiv) titleDiv.textContent = convData.title;
   }
-  console.log(activeConversationId);
-  activeConversationId = conversationId;
-  console.log(activeConversationId);
 
   const messages = await getConversationMessages(conversationId);
+  activeConversationId = conversationId;
   conversationHistory.length = 0;
   responseDiv.innerHTML = "";
 
   messages.forEach((msg) => {
-    const rendered = renderMessage({
-      author: msg.creative_agent || msg.author_name.split(" ")[0] || "Usuario",
-      text: msg.text,
-      userProfile: msg.author_avatar,
-    });
+    if (msg.creative_agent !== "system") {
+      const rendered = renderMessage({
+        author:
+          msg.creative_agent || msg.author_name.split(" ")[0] || "Usuario",
+        text: msg.text,
+        userProfile: msg.author_avatar,
+      });
 
-    addMessageToConversationHistory(rendered, conversationHistory);
-    console.log(conversationHistory);
+      addMessageToConversationHistory(rendered, conversationHistory);
+      console.log(conversationHistory);
 
-    if (msg.creative_agent !== "system") responseDiv.appendChild(rendered);
+      responseDiv.appendChild(rendered);
+    } else conversationHistory.push({ role: "user", content: msg.text });
   });
 
   responseDiv.scrollTop = responseDiv.scrollHeight;
@@ -314,6 +315,7 @@ export async function onFileLoaded(e, fileInput) {
         errorDiv.className = `message error text-content`;
         errorDiv.textContent = `el PDF ${file.name} no tiene texto extraíble.`;
         responseDiv.appendChild(errorDiv);
+        responseDiv.scrollTop = responseDiv.scrollHeight;
         continue;
       }
 
@@ -327,6 +329,7 @@ export async function onFileLoaded(e, fileInput) {
       console.log(conversationHistory);
 
       responseDiv.appendChild(replyDiv);
+      responseDiv.scrollTop = responseDiv.scrollHeight;
 
       conversationHistory.push({
         role: "user",
