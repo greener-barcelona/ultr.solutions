@@ -262,11 +262,13 @@ export async function userSendMessage() {
 //Botones
 
 async function summarizeConversationButton(button) {
-  if (!activeConversationId || conversationHistory.length <= 0)
-    return alert("Primero inicia una conversación antes de resumir.");
-
   toggleElement(button);
   await userSendMessage();
+
+  if (!activeConversationId || conversationHistory.length <= 0) {
+    toggleElement(button);
+    return alert("Primero inicia una conversación antes de resumir.");
+  }
 
   const conversationIdAtStart = activeConversationId;
   const convTitleAtStart = title || "esta conversación";
@@ -281,11 +283,13 @@ async function summarizeConversationButton(button) {
 }
 
 async function sendMessageToProfileButton(perfilKey, API, triggerBtn) {
-  if (!activeConversationId || conversationHistory.length <= 0)
-    return alert("Primero inicia una conversación antes de usar un perfil.");
-
-  toggleElement(triggerBtn);
+  toggleElement(button);
   await userSendMessage();
+
+  if (!activeConversationId || conversationHistory.length <= 0) {
+    toggleElement(button);
+    return alert("Primero inicia una conversación antes de resumir.");
+  }
 
   const conversationIdAtStart = activeConversationId;
 
@@ -382,11 +386,13 @@ function getRandomProfileButtons(count) {
 }
 
 async function runProfilesChain(count, multiplierBtn) {
-  if (!activeConversationId || conversationHistory.length <= 0)
-    return alert("Primero inicia una conversación antes de usar un perfil.");
-
-  toggleElement(multiplierBtn);
+  toggleElement(button);
   await userSendMessage();
+
+  if (!activeConversationId || conversationHistory.length <= 0) {
+    toggleElement(button);
+    return alert("Primero inicia una conversación antes de resumir.");
+  }
 
   if (!textarea) return;
 
@@ -542,10 +548,13 @@ async function sendMessageToProfile(perfilKey, API, conversationId) {
 }
 
 async function exportConversation(button, summarize) {
-  if (!activeConversationId || conversationHistory.length <= 0)
-    return alert("Primero inicia una conversación antes de exportar la conversación.");
-
   toggleElement(button);
+  await userSendMessage();
+
+  if (!activeConversationId || conversationHistory.length <= 0) {
+    toggleElement(button);
+    return alert("Primero inicia una conversación antes de resumir.");
+  }
   const pending = document.createElement("div");
   pending.className = "message pending text-content";
   pending.textContent = "Exportando...";
