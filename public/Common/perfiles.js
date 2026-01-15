@@ -5937,5 +5937,5 @@ GLOSARIO DE TÉRMINOS
 export const recordatorio = {
   role: "user",
   content:
-    "Es muy importante que tengas en cuenta que voy a querer empear un debate acerca de los temas que proponga a continuación. También recuerda utilizar el formato de salida obligatorio presente en tu perfil (este mensaje solo es un recordatorio y no ha de ser mencionado en el resto de la conversación)",
+    "Es muy importante que tengas en cuenta que voy a querer empezar un debate acerca de los temas que proponga a continuación. También recuerda utilizar el formato de salida obligatorio presente en tu perfil (este mensaje solo es un recordatorio y no ha de ser mencionado en el resto de la conversación)",
 };

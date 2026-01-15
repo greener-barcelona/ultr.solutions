@@ -266,6 +266,9 @@ export async function userSendMessage() {
 //Botones
 
 async function summarizeConversationButton(button) {
+  if (!activeConversationId && conversationHistory.length <= 0)
+    return alert("Primero inicia una conversación antes de resumir.");
+
   toggleElement(button);
   await userSendMessage();
 
@@ -282,6 +285,9 @@ async function summarizeConversationButton(button) {
 }
 
 async function sendMessageToProfileButton(perfilKey, API, triggerBtn) {
+  if (!activeConversationId && conversationHistory.length <= 0)
+    return alert("Primero inicia una conversación antes de usar un perfil.");
+
   toggleElement(triggerBtn);
   await userSendMessage();
 
@@ -381,6 +387,9 @@ function getRandomProfileButtons(count) {
 }
 
 async function runProfilesChain(count, multiplierBtn) {
+  if (!activeConversationId && conversationHistory.length <= 0)
+    return alert("Primero inicia una conversación antes de usar un perfil.");
+  
   toggleElement(multiplierBtn);
   await userSendMessage();
 
@@ -833,7 +842,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       setTimeout(() => {
         textarea.style.height = "auto";
       }, 0);
-      await userSendMessage();
+      if (textarea.value.trim()) await userSendMessage();
+      else return alert("Escribe un mensaje antes de enviar.");
     }
   });
 
