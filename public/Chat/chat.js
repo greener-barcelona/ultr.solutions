@@ -283,11 +283,11 @@ async function summarizeConversationButton(button) {
 }
 
 async function sendMessageToProfileButton(perfilKey, API, triggerBtn) {
-  toggleElement(button);
+  toggleElement(triggerBtn);
   await userSendMessage();
 
   if (!activeConversationId || conversationHistory.length <= 0) {
-    toggleElement(button);
+    toggleElement(triggerBtn);
     return alert("Primero inicia una conversación antes de resumir.");
   }
 
@@ -386,11 +386,11 @@ function getRandomProfileButtons(count) {
 }
 
 async function runProfilesChain(count, multiplierBtn) {
-  toggleElement(button);
+  toggleElement(multiplierBtn);
   await userSendMessage();
 
   if (!activeConversationId || conversationHistory.length <= 0) {
-    toggleElement(button);
+    toggleElement(multiplierBtn);
     return alert("Primero inicia una conversación antes de resumir.");
   }
 
