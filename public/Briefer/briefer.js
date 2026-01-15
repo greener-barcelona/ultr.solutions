@@ -7,7 +7,7 @@ import {
   refreshCachedConversations,
   userSendMessage,
   autoResizeTextarea,
-} from "../Common/LetsThink.js";
+} from "../Common/shared.js";
 
 let cachedConversations = null;
 

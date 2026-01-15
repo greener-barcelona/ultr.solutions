@@ -20,7 +20,7 @@ import {
   extractBodyContent,
   toggleElement,
   autoResizeTextarea,
-} from "../Common/LetsThink.js";
+} from "../Common/shared.js";
 import {
   dialogoPerfiles,
   dialogosInstrucciones,
@@ -157,8 +157,6 @@ function addConversationToSidebar(conv) {
 
   div.addEventListener("click", () => loadConversation(conv.id));
 
-  console.log(conv);
-
   div.appendChild(icon);
   div.appendChild(text);
   div.appendChild(menuButton);
@@ -206,7 +204,6 @@ async function loadConversation(conversationId) {
       });
 
       addMessageToConversationHistory(rendered, conversationHistory);
-      console.log(conversationHistory);
 
       responseDiv.appendChild(rendered);
     } else conversationHistory.push({ role: "user", content: msg.text });
@@ -249,7 +246,6 @@ export async function userSendMessage() {
   responseDiv.scrollTop = responseDiv.scrollHeight;
 
   addMessageToConversationHistory(uiMessage, conversationHistory);
-  console.log(conversationHistory);
 
   textarea.value = "";
   cachedConversations = cachedConversations.map((conversation) =>
@@ -266,7 +262,7 @@ export async function userSendMessage() {
 //Botones
 
 async function summarizeConversationButton(button) {
-  if (!activeConversationId && conversationHistory.length <= 0)
+  if (!activeConversationId || conversationHistory.length <= 0)
     return alert("Primero inicia una conversación antes de resumir.");
 
   toggleElement(button);
@@ -285,7 +281,7 @@ async function summarizeConversationButton(button) {
 }
 
 async function sendMessageToProfileButton(perfilKey, API, triggerBtn) {
-  if (!activeConversationId && conversationHistory.length <= 0)
+  if (!activeConversationId || conversationHistory.length <= 0)
     return alert("Primero inicia una conversación antes de usar un perfil.");
 
   toggleElement(triggerBtn);
@@ -332,7 +328,6 @@ export async function onFileLoaded(e, fileInput) {
       });
 
       addMessageToConversationHistory(replyDiv, conversationHistory);
-      console.log(conversationHistory);
 
       responseDiv.appendChild(replyDiv);
       responseDiv.scrollTop = responseDiv.scrollHeight;
@@ -387,9 +382,9 @@ function getRandomProfileButtons(count) {
 }
 
 async function runProfilesChain(count, multiplierBtn) {
-  if (!activeConversationId && conversationHistory.length <= 0)
+  if (!activeConversationId || conversationHistory.length <= 0)
     return alert("Primero inicia una conversación antes de usar un perfil.");
-  
+
   toggleElement(multiplierBtn);
   await userSendMessage();
 
@@ -532,7 +527,6 @@ async function sendMessageToProfile(perfilKey, API, conversationId) {
         text: cleanhtml,
       });
       addMessageToConversationHistory(replyDiv, conversationHistory);
-      console.log(conversationHistory);
 
       responseDiv.appendChild(replyDiv);
       responseDiv.scrollTop = responseDiv.scrollHeight;
@@ -548,6 +542,9 @@ async function sendMessageToProfile(perfilKey, API, conversationId) {
 }
 
 async function exportConversation(button, summarize) {
+  if (!activeConversationId || conversationHistory.length <= 0)
+    return alert("Primero inicia una conversación antes de exportar la conversación.");
+
   toggleElement(button);
   const pending = document.createElement("div");
   pending.className = "message pending text-content";
@@ -637,7 +634,6 @@ async function summarizeConversation(conversationId, convTitle, history) {
           text: `<strong>Resumen de la ronda ${convTitle}:</strong><br>${cleanhtml}`,
         });
         addMessageToConversationHistory(replyDiv, conversationHistory);
-        console.log(conversationHistory);
 
         responseDiv.appendChild(replyDiv);
         responseDiv.scrollTop = responseDiv.scrollHeight;
@@ -815,7 +811,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     const query = searchInput.value.toLowerCase().trim();
     searchResults.innerHTML = "";
     if (!query || !cachedConversations) return;
-    console.log("Cached conversations loaded:", cachedConversations);
 
     cachedConversations.forEach((conv) => {
       const titleMatch = conv.title.toLowerCase().includes(query);
